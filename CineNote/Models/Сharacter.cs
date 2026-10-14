@@ -22,6 +22,5 @@ namespace CineNote.Models
         [Column("description")]
         
         public string Description { get; set; }
-        public string Description2 { get; set; }
     }
 }
