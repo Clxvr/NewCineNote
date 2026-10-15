@@ -21,7 +21,7 @@ namespace CineNote.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CineNote.Models.Character", b =>
+            modelBuilder.Entity("Character", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,10 +47,81 @@ namespace CineNote.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("characters");
+                    b.HasIndex("MovieProjectId");
+
+                    b.ToTable("Characters");
                 });
 
-            modelBuilder.Entity("CineNote.Models.MovieProject", b =>
+            modelBuilder.Entity("CineNote.Models.ProjectShare", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessLevel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("access_level");
+
+                    b.Property<int>("MovieProjectId")
+                        .HasColumnType("int")
+                        .HasColumnName("movie_project_id");
+
+                    b.Property<int>("SharedWithUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("shared_with_user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MovieProjectId");
+
+                    b.HasIndex("SharedWithUserId");
+
+                    b.ToTable("project_shares");
+                });
+
+            modelBuilder.Entity("CineNote.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("GlobalRole")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("global_role");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("password");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("users");
+                });
+
+            modelBuilder.Entity("MovieProject", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,10 +157,12 @@ namespace CineNote.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("movie_projects");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MovieProjects");
                 });
 
-            modelBuilder.Entity("CineNote.Models.Scene", b =>
+            modelBuilder.Entity("Scene", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -131,10 +204,12 @@ namespace CineNote.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("scenes");
+                    b.HasIndex("MovieProjectId");
+
+                    b.ToTable("Scenes");
                 });
 
-            modelBuilder.Entity("CineNote.Models.SceneCharacter", b =>
+            modelBuilder.Entity("SceneCharacter", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -153,7 +228,108 @@ namespace CineNote.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("scene_characters");
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("SceneId");
+
+                    b.ToTable("SceneCharacters");
+                });
+
+            modelBuilder.Entity("Character", b =>
+                {
+                    b.HasOne("MovieProject", "MovieProject")
+                        .WithMany("Characters")
+                        .HasForeignKey("MovieProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MovieProject");
+                });
+
+            modelBuilder.Entity("CineNote.Models.ProjectShare", b =>
+                {
+                    b.HasOne("MovieProject", "MovieProject")
+                        .WithMany("ProjectShares")
+                        .HasForeignKey("MovieProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CineNote.Models.User", "SharedWithUser")
+                        .WithMany("ProjectShares")
+                        .HasForeignKey("SharedWithUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MovieProject");
+
+                    b.Navigation("SharedWithUser");
+                });
+
+            modelBuilder.Entity("MovieProject", b =>
+                {
+                    b.HasOne("CineNote.Models.User", "User")
+                        .WithMany("MovieProjects")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Scene", b =>
+                {
+                    b.HasOne("MovieProject", "MovieProject")
+                        .WithMany("Scenes")
+                        .HasForeignKey("MovieProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MovieProject");
+                });
+
+            modelBuilder.Entity("SceneCharacter", b =>
+                {
+                    b.HasOne("Character", "Character")
+                        .WithMany("SceneCharacters")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Scene", "Scene")
+                        .WithMany("SceneCharacters")
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Character");
+
+                    b.Navigation("Scene");
+                });
+
+            modelBuilder.Entity("Character", b =>
+                {
+                    b.Navigation("SceneCharacters");
+                });
+
+            modelBuilder.Entity("CineNote.Models.User", b =>
+                {
+                    b.Navigation("MovieProjects");
+
+                    b.Navigation("ProjectShares");
+                });
+
+            modelBuilder.Entity("MovieProject", b =>
+                {
+                    b.Navigation("Characters");
+
+                    b.Navigation("ProjectShares");
+
+                    b.Navigation("Scenes");
+                });
+
+            modelBuilder.Entity("Scene", b =>
+                {
+                    b.Navigation("SceneCharacters");
                 });
 #pragma warning restore 612, 618
         }
