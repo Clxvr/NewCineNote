@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CineNote.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261015164423_InitialCreate")]
+    [Migration("20261015164821_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -52,7 +52,7 @@ namespace CineNote.Migrations
 
                     b.HasIndex("MovieProjectId");
 
-                    b.ToTable("Characters");
+                    b.ToTable("characters", (string)null);
                 });
 
             modelBuilder.Entity("CineNote.Models.ProjectShare", b =>
@@ -84,7 +84,7 @@ namespace CineNote.Migrations
 
                     b.HasIndex("SharedWithUserId");
 
-                    b.ToTable("project_shares");
+                    b.ToTable("project_shares", (string)null);
                 });
 
             modelBuilder.Entity("CineNote.Models.User", b =>
@@ -121,7 +121,7 @@ namespace CineNote.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("users");
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("MovieProject", b =>
@@ -162,7 +162,7 @@ namespace CineNote.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MovieProjects");
+                    b.ToTable("movie_projects", (string)null);
                 });
 
             modelBuilder.Entity("Scene", b =>
@@ -209,7 +209,7 @@ namespace CineNote.Migrations
 
                     b.HasIndex("MovieProjectId");
 
-                    b.ToTable("Scenes");
+                    b.ToTable("scenes", (string)null);
                 });
 
             modelBuilder.Entity("SceneCharacter", b =>
@@ -235,7 +235,7 @@ namespace CineNote.Migrations
 
                     b.HasIndex("SceneId");
 
-                    b.ToTable("SceneCharacters");
+                    b.ToTable("scene_characters", (string)null);
                 });
 
             modelBuilder.Entity("Character", b =>

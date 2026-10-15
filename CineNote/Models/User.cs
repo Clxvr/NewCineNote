@@ -10,28 +10,27 @@ namespace CineNote.Models
         [Column("id")]
         public int Id { get; set; }
 
+        [Required(ErrorMessage = "Имя обязательно для заполнения.")]
+        [Column("name")]
+        public string Name { get => name; set => name = value; } = string.Empty;
+
         [Required(ErrorMessage = "Email обязателен для заполнения.")]
-        [EmailAddress(ErrorMessage = "Введите корректный адрес электронной почты.")]
-        [StringLength(100, ErrorMessage = "Email не должен превышать 100 символов.")]
+        [EmailAddress(ErrorMessage = "Некорректный формат Email.")]
         [Column("email")]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Пароль обязателен для заполнения.")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Пароль должен содержать от 6 до 100 символов.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Пароль должен содержать от 8 до 100 символов.")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$",
+            ErrorMessage = "Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву, одну цифру и один специальный символ.")]
         [Column("password")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Имя пользователя обязательно для заполнения.")]
-        [StringLength(50, ErrorMessage = "Имя не должно превышать 50 символов.")]
-        [Column("name")]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
         [Column("global_role")]
-        public string GlobalRole { get; set; } = "Пользователь";
+        public string GlobalRole { get; set; } = "Сценарист";
 
-      
         public ICollection<MovieProject> MovieProjects { get; set; } = new List<MovieProject>();
         public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();
+        private string name = string.Empty;
     }
 }

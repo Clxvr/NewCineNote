@@ -27,7 +27,7 @@ namespace CineNote.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MovieProjects",
+                name: "movie_projects",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -40,9 +40,9 @@ namespace CineNote.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MovieProjects", x => x.id);
+                    table.PrimaryKey("PK_movie_projects", x => x.id);
                     table.ForeignKey(
-                        name: "FK_MovieProjects_users_user_id",
+                        name: "FK_movie_projects_users_user_id",
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
@@ -50,7 +50,7 @@ namespace CineNote.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Characters",
+                name: "characters",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -61,11 +61,11 @@ namespace CineNote.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Characters", x => x.id);
+                    table.PrimaryKey("PK_characters", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Characters_MovieProjects_movie_project_id",
+                        name: "FK_characters_movie_projects_movie_project_id",
                         column: x => x.movie_project_id,
-                        principalTable: "MovieProjects",
+                        principalTable: "movie_projects",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -84,9 +84,9 @@ namespace CineNote.Migrations
                 {
                     table.PrimaryKey("PK_project_shares", x => x.id);
                     table.ForeignKey(
-                        name: "FK_project_shares_MovieProjects_movie_project_id",
+                        name: "FK_project_shares_movie_projects_movie_project_id",
                         column: x => x.movie_project_id,
-                        principalTable: "MovieProjects",
+                        principalTable: "movie_projects",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -98,7 +98,7 @@ namespace CineNote.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Scenes",
+                name: "scenes",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -112,17 +112,17 @@ namespace CineNote.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Scenes", x => x.id);
+                    table.PrimaryKey("PK_scenes", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Scenes_MovieProjects_movie_project_id",
+                        name: "FK_scenes_movie_projects_movie_project_id",
                         column: x => x.movie_project_id,
-                        principalTable: "MovieProjects",
+                        principalTable: "movie_projects",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "SceneCharacters",
+                name: "scene_characters",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -132,29 +132,29 @@ namespace CineNote.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SceneCharacters", x => x.id);
+                    table.PrimaryKey("PK_scene_characters", x => x.id);
                     table.ForeignKey(
-                        name: "FK_SceneCharacters_Characters_character_id",
+                        name: "FK_scene_characters_characters_character_id",
                         column: x => x.character_id,
-                        principalTable: "Characters",
+                        principalTable: "characters",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_SceneCharacters_Scenes_scene_id",
+                        name: "FK_scene_characters_scenes_scene_id",
                         column: x => x.scene_id,
-                        principalTable: "Scenes",
+                        principalTable: "scenes",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Characters_movie_project_id",
-                table: "Characters",
+                name: "IX_characters_movie_project_id",
+                table: "characters",
                 column: "movie_project_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieProjects_user_id",
-                table: "MovieProjects",
+                name: "IX_movie_projects_user_id",
+                table: "movie_projects",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
@@ -168,18 +168,18 @@ namespace CineNote.Migrations
                 column: "shared_with_user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SceneCharacters_character_id",
-                table: "SceneCharacters",
+                name: "IX_scene_characters_character_id",
+                table: "scene_characters",
                 column: "character_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SceneCharacters_scene_id",
-                table: "SceneCharacters",
+                name: "IX_scene_characters_scene_id",
+                table: "scene_characters",
                 column: "scene_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Scenes_movie_project_id",
-                table: "Scenes",
+                name: "IX_scenes_movie_project_id",
+                table: "scenes",
                 column: "movie_project_id");
         }
 
@@ -190,16 +190,16 @@ namespace CineNote.Migrations
                 name: "project_shares");
 
             migrationBuilder.DropTable(
-                name: "SceneCharacters");
+                name: "scene_characters");
 
             migrationBuilder.DropTable(
-                name: "Characters");
+                name: "characters");
 
             migrationBuilder.DropTable(
-                name: "Scenes");
+                name: "scenes");
 
             migrationBuilder.DropTable(
-                name: "MovieProjects");
+                name: "movie_projects");
 
             migrationBuilder.DropTable(
                 name: "users");
