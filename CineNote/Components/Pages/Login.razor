@@ -1,0 +1,82 @@
+﻿@page "/login"
+@using CineNote.Services
+@inject UserService UserService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="container mt-5 login-container">
+    <div class="card shadow-sm p-4">
+        <h3 class="text-center mb-4">Вход в CineNote</h3>
+
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label">Email:</label>
+                <InputText @bind-Value="loginModel.Email" class="form-control" placeholder="example@mail.com" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Пароль:</label>
+                <div class="input-group">
+                    <InputText @bind-Value="loginModel.Password" type="@(showPassword ? "text" : "password")" class="form-control" placeholder="Пароль" />
+                    <button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword">
+                        @(showPassword ? "Скрыть" : "Показать")
+                    </button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger py-2 mb-3">@errorMessage</div>
+            }
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">Войти</button>
+
+            <div class="text-center">
+                <span class="text-muted">Ещё нет аккаунта? </span>
+                <a href="/register">Зарегистрироваться</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+    private bool showPassword = false;
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    private void TogglePassword()
+    {
+        showPassword = !showPassword;
+    }
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+
+        try
+        {
+            var user = await UserService.GetUserByEmailAsync(loginModel.Email);
+
+            if (user == null || user.Password != loginModel.Password)
+            {
+                errorMessage = "Неверный email или пароль!";
+                return;
+            }
+
+            AuthService.Login(user);
+            Navigation.NavigateTo("/projects");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Произошла ошибка при входе: " + ex.Message;
+        }
+    }
+}

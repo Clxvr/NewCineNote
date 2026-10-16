@@ -1,0 +1,73 @@
+﻿@page "/projects/create"
+@using CineNote.Models
+@using CineNote.Services
+@inject MovieProjectService ProjectService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="container mt-5 create-container">
+    <div class="card shadow-sm p-4">
+        <h3 class="text-center mb-4">Новый проект</h3>
+
+        @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
+        {
+            <div class="alert alert-warning">
+                Для создания проекта необходимо <a href="/login">войти в систему</a>.
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@newProject" OnValidSubmit="HandleCreate">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">Название проекта:</label>
+                    <InputText @bind-Value="newProject.Title" class="form-control" placeholder="Например: Мой первый фильм" required />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger py-2 mb-3">@errorMessage</div>
+                }
+
+                <button type="submit" class="btn btn-primary w-100 mb-3">Сохранить проект</button>
+
+                <div class="text-center">
+                    <a href="/projects">← Вернуться к списку проектов</a>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    private MovieProject newProject = new();
+    private string? errorMessage;
+
+    private async Task HandleCreate()
+    {
+        errorMessage = null;
+
+        try
+        {
+            if (AuthService.CurrentUser == null)
+            {
+                errorMessage = "Ошибка: пользователь не найден в сессии!";
+                return;
+            }
+
+   
+            newProject.UserId = AuthService.CurrentUser.Id;
+
+
+            await ProjectService.CreateProjectAsync(newProject);
+
+          
+            Navigation.NavigateTo("/projects");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Ошибка при сохранении: " + ex.Message;
+        }
+    }
+}

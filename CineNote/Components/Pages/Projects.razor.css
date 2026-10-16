@@ -1,0 +1,50 @@
+﻿/* Контейнер страницы */
+.projects-container {
+    padding-bottom: 3rem;
+}
+
+/* Блок приветствия пользователя */
+.user-greeting {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #4c6ef5;
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* Карточки проектов */
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    transition: all 0.25s ease;
+}
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+.card-title {
+    font-weight: 700;
+    color: #2d3748;
+}
+
+/* Кнопка создания проекта */
+.btn-primary {
+    background: linear-gradient(135deg, #4c6ef5 0%, #3b5bdb 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.3);
+    transition: all 0.2s ease;
+}
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #3b5bdb 0%, #364fc7 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(76, 110, 245, 0.4);
+    }

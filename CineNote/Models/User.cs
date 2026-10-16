@@ -12,7 +12,7 @@ namespace CineNote.Models
 
         [Required(ErrorMessage = "Имя обязательно для заполнения.")]
         [Column("name")]
-        public string Name { get => name; set => name = value; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Email обязателен для заполнения.")]
         [EmailAddress(ErrorMessage = "Некорректный формат Email.")]
@@ -29,8 +29,8 @@ namespace CineNote.Models
         [Column("global_role")]
         public string GlobalRole { get; set; } = "Сценарист";
 
+        // Навигационные свойства
         public ICollection<MovieProject> MovieProjects { get; set; } = new List<MovieProject>();
         public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();
-        private string name = string.Empty;
     }
 }

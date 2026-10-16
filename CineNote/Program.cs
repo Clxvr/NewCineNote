@@ -26,7 +26,7 @@ builder.Services.AddScoped<MovieProjectService>();
 builder.Services.AddScoped<CharacterService>();
 builder.Services.AddScoped<SceneService>();
 builder.Services.AddScoped<UserService>();
-
+builder.Services.AddSingleton<AuthService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
