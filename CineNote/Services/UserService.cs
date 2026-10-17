@@ -13,20 +13,26 @@ namespace CineNote.Services
             _contextFactory = contextFactory;
         }
 
-        // Проверка: есть ли пользователь с таким email в базе
+
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
-        // Добавление нового пользователя в базу
+     
         public async Task<User> AddUserAsync(User user)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             context.Users.Add(user);
             await context.SaveChangesAsync();
             return user;
+        }
+        public async Task<bool> UpdateUserAsync(User user)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            context.Users.Update(user);
+            return await context.SaveChangesAsync() > 0;
         }
     }
 }

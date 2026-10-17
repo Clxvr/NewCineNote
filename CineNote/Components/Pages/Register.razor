@@ -4,7 +4,7 @@
 @inject UserService UserService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
-
+@inject EmailService EmailService
 <div class="container mt-5 register-container">
     <div class="card shadow-sm p-4">
         <h3 class="text-center mb-4">Регистрация в CineNote</h3>
@@ -81,17 +81,32 @@
                 return;
             }
 
+        
+            string code = new Random().Next(100000, 999999).ToString();
+            newUser.VerificationCode = code;
+            newUser.IsEmailConfirmed = false;
+
+    
+            newUser.Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password);
             await UserService.AddUserAsync(newUser);
 
-            successMessage = "Регистрация прошла успешно! Перенаправление...";
+   
+            string subject = "Код подтверждения регистрации CineNote";
+            string htmlMessage = $"<h2>Добро пожаловать, {newUser.Name}!</h2>" +
+                                 $"<p>Ваш код подтверждения для завершения регистрации:</p>" +
+                                 $"<h1 style='color: #4CAF50; letter-spacing: 2px;'>{code}</h1>";
 
-            AuthService.Login(newUser);
-            await Task.Delay(1000);
-            Navigation.NavigateTo("/projects");
+            await EmailService.SendEmailAsync(newUser.Email, subject, htmlMessage);
+
+            successMessage = "Код отправлен на почту! Перенаправление...";
+            await Task.Delay(1500);
+
+        
+            Navigation.NavigateTo($"/verify-email?email={newUser.Email}");
         }
         catch (Exception ex)
         {
-            errorMessage = "Ошибка при сохранении в базу: " + ex.Message;
+            errorMessage = "Ошибка при регистрации: " + ex.Message;
         }
     }
 }

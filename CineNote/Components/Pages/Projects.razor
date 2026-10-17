@@ -88,8 +88,9 @@
 
     private async Task DeleteProject(int id)
     {
-        // Вызываем метод удаления из сервиса
-        bool success = await ProjectService.DeleteProjectAsync(id);
+      if (AuthService.CurrentUser == null) return;
+
+        bool success = await ProjectService.DeleteProjectAsync(id, AuthService.CurrentUser.Id);
 
         if (success)
         {

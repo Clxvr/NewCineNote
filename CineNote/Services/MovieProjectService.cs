@@ -1,5 +1,4 @@
-﻿
-using CineNote.Data;
+﻿using CineNote.Data;
 using CineNote.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,27 +33,40 @@ namespace CineNote.Services
                 .ToListAsync();
         }
 
-        public async Task<MovieProject?> GetProjectByIdAsync(int id)
+
+        public async Task<MovieProject?> GetProjectByIdAndUserAsync(int id, int userId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
             return await context.MovieProjects
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
         }
 
-        public async Task<bool> UpdateProjectAsync(MovieProject project)
+
+        public async Task<bool> UpdateProjectAsync(MovieProject project, int userId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
-            context.MovieProjects.Update(project);
+            var existingProject = await context.MovieProjects
+                .FirstOrDefaultAsync(p => p.Id == project.Id && p.UserId == userId);
+
+            if (existingProject == null)
+                return false;
+
+            existingProject.Title = project.Title;
+
+
+            context.MovieProjects.Update(existingProject);
             return await context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> DeleteProjectAsync(int id)
+        
+        public async Task<bool> DeleteProjectAsync(int id, int userId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
-            var project = await context.MovieProjects.FindAsync(id);
+            var project = await context.MovieProjects
+                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
 
             if (project == null)
                 return false;

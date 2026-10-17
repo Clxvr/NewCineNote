@@ -65,7 +65,7 @@
         {
             var user = await UserService.GetUserByEmailAsync(loginModel.Email);
 
-            if (user == null || user.Password != loginModel.Password)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginModel.Password, user.Password))
             {
                 errorMessage = "Неверный email или пароль!";
                 return;

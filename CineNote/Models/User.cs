@@ -28,8 +28,10 @@ namespace CineNote.Models
 
         [Column("global_role")]
         public string GlobalRole { get; set; } = "Сценарист";
+        public string? VerificationCode { get; set; }
+        public bool IsEmailConfirmed { get; set; } = false;
 
-        // Навигационные свойства
+
         public ICollection<MovieProject> MovieProjects { get; set; } = new List<MovieProject>();
         public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();
     }

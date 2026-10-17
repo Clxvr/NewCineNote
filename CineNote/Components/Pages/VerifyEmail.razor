@@ -1,0 +1,60 @@
+﻿@page "/verify-email"
+@using CineNote.Services
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<div class="verify-container">
+    <h3 class="verify-title">Подтверждение почты</h3>
+    <p class="verify-subtitle">Мы отправили 6-значный код на ваш email. Проверьте почтовый ящик в Mailtrap.</p>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mb-3">@errorMessage</div>
+    }
+
+    <div class="form-group">
+        <label class="form-label">Введите код подтверждения</label>
+        <input @bind="enteredCode" class="form-control code-input" placeholder="123456" maxlength="6" />
+    </div>
+
+    <button class="btn btn-primary w-100 btn-submit" @onclick="VerifyCode">Подтвердить</button>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Email { get; set; }
+
+    private string enteredCode = "";
+    private string? errorMessage;
+
+    private async Task VerifyCode()
+    {
+        if (string.IsNullOrEmpty(Email))
+        {
+            errorMessage = "Ошибка: email не найден.";
+            return;
+        }
+
+        var user = await UserService.GetUserByEmailAsync(Email);
+
+        if (user == null)
+        {
+            errorMessage = "Пользователь не найден.";
+            return;
+        }
+
+        if (user.VerificationCode == enteredCode)
+        {
+            user.IsEmailConfirmed = true;
+            user.VerificationCode = null; 
+            await UserService.UpdateUserAsync(user);
+
+            Navigation.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = "Неверный код подтверждения. Попробуйте еще раз.";
+        }
+    }
+}
