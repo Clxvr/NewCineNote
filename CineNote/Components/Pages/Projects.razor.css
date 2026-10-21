@@ -13,38 +13,47 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
-/* Карточки проектов */
-.card {
-    border: none;
-    border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+/* «Живые» карточки проектов */
+.project-card {
     background: #ffffff;
-    transition: all 0.25s ease;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(0, 0, 0, 0.04) !important;
 }
 
-    .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    .project-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(76, 110, 245, 0.12) !important;
     }
+
+/* Верхняя акцентная полоска */
+.card-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #4c6ef5 0%, #3b5bdb 100%);
+}
 
 .card-title {
     font-weight: 700;
     color: #2d3748;
+    letter-spacing: -0.3px;
 }
 
-/* Кнопка создания проекта */
+/* Кнопки */
 .btn-primary {
     background: linear-gradient(135deg, #4c6ef5 0%, #3b5bdb 100%);
     border: none;
     border-radius: 10px;
-    padding: 10px 20px;
+    padding: 8px 16px;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.3);
+    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.25);
     transition: all 0.2s ease;
 }
 
     .btn-primary:hover {
         background: linear-gradient(135deg, #3b5bdb 0%, #364fc7 100%);
         transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(76, 110, 245, 0.4);
+        box-shadow: 0 6px 16px rgba(76, 110, 245, 0.35);
     }

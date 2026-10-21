@@ -8,7 +8,7 @@
 <div class="container mt-4 projects-container">
     @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
     {
-        <div class="alert alert-warning shadow-sm p-4">
+        <div class="alert alert-warning shadow-sm p-4 rounded-4">
             <h4>Требуется авторизация</h4>
             <p class="mb-3">Для просмотра ваших сценариев необходимо войти в систему.</p>
             <a href="/login" class="btn btn-primary">Войти в аккаунт</a>
@@ -28,21 +28,33 @@
 
         <!-- Шапка страницы с заголовком и кнопкой создания -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Мои проекты</h2>
-            <a href="/projects/create" class="btn btn-primary">+ Новый проект</a>
+            <div>
+                <h2 class="fw-bold mb-1">Мои проекты</h2>
+                <p class="text-muted mb-0">Управляйте своими фильмами, сериалами и сценарными набросками</p>
+            </div>
+            <a href="/projects/create" class="btn btn-primary btn-lg shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i>+ Новый проект
+            </a>
         </div>
 
         @if (userProjects == null)
         {
             <div class="text-center py-5">
-                <p class="text-muted">Загрузка ваших проектов...</p>
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2">Загрузка ваших проектов...</p>
             </div>
         }
         else if (!userProjects.Any())
         {
-            <div class="alert alert-info shadow-sm p-4">
-                <h5>У вас пока нет проектов</h5>
-                <p class="mb-0">Создайте свой первый кинопроект или сценарий с помощью кнопки выше!</p>
+            <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-light">
+                <div class="card-body py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-film text-primary display-4"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">У вас пока нет проектов</h4>
+                    <p class="text-muted mb-4">Создайте свой первый кинопроект или сценарий с помощью кнопки выше!</p>
+                    <a href="/projects/create" class="btn btn-primary px-4">Создать первый проект</a>
+                </div>
             </div>
         }
         else
@@ -51,16 +63,33 @@
                 @foreach (var project in userProjects)
                 {
                     <div class="col-md-4 mb-4">
-                        <div class="card p-4 h-100 d-flex flex-column">
-                            <h5 class="card-title mb-2">@project.Title</h5>
-                            <p class="card-text text-muted flex-grow-1">
-                                @(string.IsNullOrEmpty(project.Logline) ? "Описание отсутствует..." : project.Logline)
+                        <div class="card project-card p-4 h-100 d-flex flex-column border-0 shadow-sm rounded-4 position-relative overflow-hidden">
+                            <!-- Декоративная акцентная полоска сверху карточки -->
+                            <div class="card-accent-bar"></div>
+
+                            <!-- Шапка карточки: Жанр -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge bg-light text-primary border px-2.5 py-1.5 rounded-pill small fw-semibold">
+                                    <i class="bi bi-tag-fill me-1"></i> @project.Genre
+                                </span>
+                            </div>
+
+                            <!-- Название проекта -->
+                            <h5 class="card-title fw-bold text-dark mb-2">@project.Title</h5>
+                            
+                            <!-- Логлайн / Описание -->
+                            <p class="card-text text-muted flex-grow-1 small lh-base">
+                                @(string.IsNullOrEmpty(project.Logline) ? "Логлайн или описание отсутствуют..." : project.Logline)
                             </p>
 
                             <!-- Кнопки управления проектом -->
-                            <div class="mt-3 d-flex gap-2">
-                                <a href="/projects/@project.Id" class="btn btn-outline-primary btn-sm flex-grow-1">Открыть</a>
-                                <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteProject(project.Id)">Удалить</button>
+                            <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                <a href="/projects/@project.Id" class="btn btn-primary btn-sm flex-grow-1 py-2 fw-semibold">
+                                    <i class="bi bi-folder2-open me-1"></i> Открыть
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm px-3 py-2" @onclick="() => DeleteProject(project.Id)" title="Удалить проект">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -88,13 +117,12 @@
 
     private async Task DeleteProject(int id)
     {
-      if (AuthService.CurrentUser == null) return;
+        if (AuthService.CurrentUser == null) return;
 
         bool success = await ProjectService.DeleteProjectAsync(id, AuthService.CurrentUser.Id);
 
         if (success)
         {
-            // Перезагружаем список проектов, чтобы карточка пропала с экрана
             await LoadProjects();
         }
     }

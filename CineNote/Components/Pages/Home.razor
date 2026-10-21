@@ -1,7 +1,59 @@
 ﻿@page "/"
+@using CineNote.Services
+@inject AuthService AuthService
+@implements IDisposable
 
-<PageTitle>Home</PageTitle>
+<div class="container mt-5 py-4 text-center" style="max-width: 650px;">
+    @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
+    {
+        <!-- Экран для гостей -->
+        <div class="card shadow-sm border-0 rounded-4 p-5 bg-white">
+            <div class="mb-3">
+                <span class="display-3">🎬</span>
+            </div>
+            <h1 class="fw-bold mb-3 text-dark">Добро пожаловать в CineNote</h1>
+            <p class="text-muted mb-4 lead fs-6">
+                Профессиональный инструмент для сценаристов. Создавайте проекты, пишите логлайны и управляйте своими историями в удобном сценарном формате.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/login" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">Войти в аккаунт</a>
+                <a href="/register" class="btn btn-outline-dark px-4 py-2 fw-semibold">Зарегистрироваться</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Экран для залогиненного пользователя -->
+        <div class="card shadow-sm border-0 rounded-4 p-5 bg-white">
+            <div class="mb-3">
+                <span class="display-3">✨</span>
+            </div>
+            <h1 class="fw-bold mb-2 text-dark">С возвращением, @AuthService.CurrentUser.Name!</h1>
+            <p class="text-muted mb-4">
+                Готовы продолжить работу над историями или хотите начать новый сценарный проект?
+            </p>
+            <div class="d-flex justify-content-center flex-wrap gap-3">
+                <a href="/projects" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
+                    <i class="bi bi-journal-bookmark me-2"></i> Мои проекты
+                </a>
+                <a href="/projects/create" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">
+                    <i class="bi bi-plus-lg me-2"></i> Создать проект
+                </a>
+            </div>
+        </div>
+    }
+</div>
 
-<h1>Hello, world!</h1>
+@code {
+    protected override void OnInitialized()
+    {
+        // Подписываемся на изменения состояния авторизации
+        AuthService.OnChange += StateHasChanged;
+    }
 
-Welcome to your new app.
+    public void Dispose()
+    {
+        // Отписываемся при уничтожении компонента, чтобы избежать утечек памяти
+        AuthService.OnChange -= StateHasChanged;
+    }
+}

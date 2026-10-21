@@ -1,23 +1,88 @@
 ﻿@inherits LayoutComponentBase
+@using CineNote.Services
+@inject AuthService AuthService
+@implements IDisposable
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="page-wrapper d-flex flex-column min-vh-100">
+    <!-- Верхняя шапка -->
+    <header class="navbar navbar-expand-lg px-4 shadow-sm top-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+                <span class="brand-icon">🎬</span> CineNote
+            </a>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#scriptNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="scriptNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+                    <li class="nav-item">
+                        <NavLink class="nav-link fw-semibold" href="/projects">
+                            <i class="bi bi-journal-bookmark me-2"></i> Мои проекты
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link fw-semibold" href="/about">
+                            <i class="bi bi-info-circle me-2"></i> О нас
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link fw-semibold" href="/contact">
+                            <i class="bi bi-chat-left-text me-2"></i> Обратная связь
+                        </NavLink>
+                    </li>
+
+                    @if (AuthService.IsLoggedIn && AuthService.CurrentUser != null)
+                    {
+                        <li class="nav-item ms-lg-2">
+                            <button class="btn btn-sm btn-outline-dark px-3 rounded-pill" @onclick="HandleLogout">
+                                Выйти (@AuthService.CurrentUser.Name)
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
         </div>
+    </header>
 
-        <article class="content px-4">
-            @Body
-        </article>
+    <!-- Основной контент -->
+    <main class="main-content py-4 flex-grow-1">
+        @Body
     </main>
+
+    <!-- Футер с авторством -->
+    <footer class="app-footer text-center py-3 border-top mt-auto">
+        <div class="container text-muted small">
+            <span>CineNote &copy; 2026 &bull; Профессиональный инструмент сценариста</span>
+            <span class="mx-2">|</span>
+            <span class="fw-medium text-dark">Разработчик: Максим Мурашко</span>
+        </div>
+    </footer>
 </div>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+@code {
+    protected override void OnInitialized()
+    {
+        AuthService.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await AuthService.InitializeAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout(); // Убедись, что здесь без "Async"
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnChange -= StateHasChanged;
+    }
+}

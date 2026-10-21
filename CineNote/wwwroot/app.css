@@ -49,3 +49,14 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+/* Подключаем современный шрифт Montserrat ко всему сайту */
+body, button, input, select, textarea {
+    font-family: 'Montserrat', -apple-system, Roboto, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Фон под цвет сценарной бумаги */
+body {
+    background-color: #fdfaf3 !important;
+}

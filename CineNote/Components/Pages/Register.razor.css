@@ -1,20 +1,20 @@
-﻿/* Мягкий градиентный фон для всей страницы */
+﻿/* Фоновое оформление страницы */
 ::deep body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background-color: #fdfaf3;
     min-height: 100vh;
 }
 
 /* Центрирование и ограничение ширины контейнера */
-.register-container {
+.register-container, .login-container {
     max-width: 440px;
     margin: 40px auto;
 }
 
 /* Стильная карточка формы */
 .card {
-    border: none;
+    border: 1px solid rgba(0, 0, 0, 0.04);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     background: #ffffff;
     padding: 2rem;
     transition: transform 0.3s ease;
@@ -23,7 +23,7 @@
 /* Заголовок */
 h3 {
     font-weight: 700;
-    color: #2d3748;
+    color: #2b2b2b;
     letter-spacing: -0.5px;
 }
 
@@ -36,10 +36,10 @@ h3 {
     transition: all 0.2s ease-in-out;
 }
 
-    /* Эффект при фокусе на поле ввода */
+    /* Эффект при фокусе на поле ввода (теперь золотистый вместо синего) */
     .form-control:focus {
-        border-color: #4c6ef5;
-        box-shadow: 0 0 0 4px rgba(76, 110, 245, 0.15);
+        border-color: #f1be36;
+        box-shadow: 0 0 0 4px rgba(241, 190, 54, 0.2);
     }
 
 /* Подписи к полям */
@@ -57,39 +57,41 @@ h3 {
     margin-top: 4px;
 }
 
-/* Кнопка регистрации */
+/* Кнопка входа/регистрации (в сценарном желтом стиле) */
 .btn-primary {
-    background: linear-gradient(135deg, #4c6ef5 0%, #3b5bdb 100%);
-    border: none;
+    background: linear-gradient(135deg, #f7cb53 0%, #f1be36 100%) !important;
+    border: none !important;
     border-radius: 10px;
     padding: 12px;
     font-weight: 600;
     font-size: 1rem;
+    color: #1a1a1a !important;
     letter-spacing: 0.3px;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.3);
+    box-shadow: 0 4px 12px rgba(241, 190, 54, 0.3);
 }
 
     .btn-primary:hover {
-        background: linear-gradient(135deg, #3b5bdb 0%, #364fc7 100%);
+        background: linear-gradient(135deg, #f1be36 0%, #e0b034 100%) !important;
         transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(76, 110, 245, 0.4);
+        box-shadow: 0 6px 16px rgba(241, 190, 54, 0.4);
+        color: #1a1a1a !important;
     }
 
     .btn-primary:active {
         transform: translateY(0);
     }
 
-/* Ссылки */
+/* Ссылки (в гармоничном темном или янтарном тоне) */
 a {
-    color: #4c6ef5;
+    color: #b8860b;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s ease;
 }
 
     a:hover {
-        color: #364fc7;
+        color: #8b6508;
         text-decoration: underline;
     }
 

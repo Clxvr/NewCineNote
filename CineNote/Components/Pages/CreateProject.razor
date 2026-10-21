@@ -5,69 +5,91 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="container mt-5 create-container">
-    <div class="card shadow-sm p-4">
-        <h3 class="text-center mb-4">Новый проект</h3>
-
-        @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
-        {
-            <div class="alert alert-warning">
-                Для создания проекта необходимо <a href="/login">войти в систему</a>.
+<div class="container mt-4 create-project-container" style="max-width: 700px;">
+    @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
+    {
+        <div class="alert alert-warning shadow-sm p-4 rounded-4">
+            <h4>Требуется авторизация</h4>
+            <p class="mb-3">Для создания проекта необходимо войти в систему.</p>
+            <a href="/login" class="btn btn-primary">Войти в аккаунт</a>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0 rounded-4 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">Новый сценарный проект</h3>
+                    <p class="text-muted mb-0">Заполните основную информацию о вашей будущей истории</p>
+                </div>
+                <a href="/projects" class="btn btn-outline-secondary btn-sm px-3">Назад к списку</a>
             </div>
-        }
-        else
-        {
-            <EditForm Model="@newProject" OnValidSubmit="HandleCreate">
-                <DataAnnotationsValidator />
 
+            <EditForm Model="newProject" OnValidSubmit="HandleCreate">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="alert alert-danger mb-3 rounded-3 small" />
+
+                <!-- Название проекта -->
                 <div class="mb-3">
-                    <label class="form-label">Название проекта:</label>
-                    <InputText @bind-Value="newProject.Title" class="form-control" placeholder="Например: Мой первый фильм" required />
+                    <label class="form-label fw-semibold">Название фильма / сериала</label>
+                    <InputText class="form-control" @bind-Value="newProject.Title" placeholder="Например: Побег из Шоушенка" />
+                    <ValidationMessage For="@(() => newProject.Title)" class="text-danger small mt-1" />
                 </div>
 
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div class="alert alert-danger py-2 mb-3">@errorMessage</div>
-                }
+                <!-- Выбор жанра (из enum Genre) -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Жанр</label>
+                    <InputSelect class="form-select" @bind-Value="newProject.Genre">
+                        @foreach (var genre in Enum.GetValues(typeof(Genre)))
+                        {
+                            <option value="@genre">@genre</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => newProject.Genre)" class="text-danger small mt-1" />
+                </div>
 
-                <button type="submit" class="btn btn-primary w-100 mb-3">Сохранить проект</button>
+                <!-- Логлайн -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Логлайн <span class="text-muted fw-normal">(краткая суть до 500 символов)</span></label>
+                    <InputTextArea class="form-control" rows="4" @bind-Value="newProject.Logline" placeholder="Опишите главного героя, главный конфликт и цель..." />
+                    <ValidationMessage For="@(() => newProject.Logline)" class="text-danger small mt-1" />
+                </div>
 
-                <div class="text-center">
-                    <a href="/projects">← Вернуться к списку проектов</a>
+                <!-- Кнопки управления -->
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a href="/projects" class="btn btn-light px-4">Отмена</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Создать проект
+                    </button>
                 </div>
             </EditForm>
-        }
-    </div>
+        </div>
+    }
 </div>
 
 @code {
     private MovieProject newProject = new();
-    private string? errorMessage;
+    private bool isSubmitting = false;
 
     private async Task HandleCreate()
     {
-        errorMessage = null;
+        if (AuthService.CurrentUser == null) return;
 
-        try
-        {
-            if (AuthService.CurrentUser == null)
-            {
-                errorMessage = "Ошибка: пользователь не найден в сессии!";
-                return;
-            }
+        isSubmitting = true;
 
-   
-            newProject.UserId = AuthService.CurrentUser.Id;
+        // Привязываем проект к текущему авторизованному пользователю
+        newProject.UserId = AuthService.CurrentUser.Id;
 
+        // Вызываем метод сервиса для сохранения в БД
+        await ProjectService.CreateProjectAsync(newProject);
 
-            await ProjectService.CreateProjectAsync(newProject);
+        isSubmitting = false;
 
-          
-            Navigation.NavigateTo("/projects");
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Ошибка при сохранении: " + ex.Message;
-        }
+        // Возвращаем пользователя на дашборд с проектами
+        Navigation.NavigateTo("/projects");
     }
 }
