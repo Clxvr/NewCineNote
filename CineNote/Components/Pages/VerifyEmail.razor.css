@@ -1,4 +1,4 @@
-﻿/* Винтажный сценарный фон */
+﻿
 ::deep body {
     background-color: #fdfaf3;
     min-height: 100vh;
@@ -41,7 +41,7 @@
     display: block;
 }
 
-/* Поля ввода с золотистым фокусом */
+
 .form-control {
     border-radius: 10px;
     padding: 12px 16px;
@@ -62,7 +62,7 @@
     font-weight: 600;
 }
 
-/* Кнопка отправки в желтом сценарном стиле */
+
 .btn-submit {
     background: linear-gradient(135deg, #f7cb53 0%, #f1be36 100%) !important;
     border: none !important;

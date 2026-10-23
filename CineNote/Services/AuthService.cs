@@ -18,7 +18,7 @@ namespace CineNote.Services
             _jsRuntime = jsRuntime;
         }
 
-        // Загрузка пользователя из localStorage при старте
+
         public async Task InitializeAsync()
         {
             try
@@ -32,11 +32,11 @@ namespace CineNote.Services
             }
             catch
             {
-                // Игнорируем ошибку при пререндере
+          
             }
         }
 
-        // Метод входа (теперь называется Login, как в Login.razor)
+      
         public async Task Login(User user)
         {
             CurrentUser = user;
@@ -45,7 +45,7 @@ namespace CineNote.Services
             NotifyStateChanged();
         }
 
-        // Метод выхода (теперь называется Logout)
+    
         public async Task Logout()
         {
             CurrentUser = null;

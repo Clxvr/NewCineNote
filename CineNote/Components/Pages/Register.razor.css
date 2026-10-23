@@ -20,14 +20,13 @@
     transition: transform 0.3s ease;
 }
 
-/* Заголовок */
 h3 {
     font-weight: 700;
     color: #2b2b2b;
     letter-spacing: -0.5px;
 }
 
-/* Поля ввода */
+
 .form-control {
     border-radius: 10px;
     padding: 12px 16px;
@@ -36,13 +35,13 @@ h3 {
     transition: all 0.2s ease-in-out;
 }
 
-    /* Эффект при фокусе на поле ввода (теперь золотистый вместо синего) */
+
     .form-control:focus {
         border-color: #f1be36;
         box-shadow: 0 0 0 4px rgba(241, 190, 54, 0.2);
     }
 
-/* Подписи к полям */
+
 .form-label {
     font-weight: 600;
     color: #4a5568;
@@ -50,14 +49,14 @@ h3 {
     margin-bottom: 6px;
 }
 
-/* Подсказка для пароля */
+
 .form-text {
     font-size: 0.75rem;
     color: #718096;
     margin-top: 4px;
 }
 
-/* Кнопка входа/регистрации (в сценарном желтом стиле) */
+
 .btn-primary {
     background: linear-gradient(135deg, #f7cb53 0%, #f1be36 100%) !important;
     border: none !important;
@@ -82,7 +81,7 @@ h3 {
         transform: translateY(0);
     }
 
-/* Ссылки (в гармоничном темном или янтарном тоне) */
+
 a {
     color: #b8860b;
     text-decoration: none;
@@ -95,7 +94,7 @@ a {
         text-decoration: underline;
     }
 
-/* Ошибки и успешные сообщения */
+
 .alert {
     border-radius: 10px;
     font-size: 0.9rem;

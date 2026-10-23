@@ -4,7 +4,7 @@
 @implements IDisposable
 
 <div class="page-wrapper d-flex flex-column min-vh-100">
-    <!-- Верхняя шапка -->
+
     <header class="navbar navbar-expand-lg px-4 shadow-sm top-navbar">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
@@ -46,12 +46,11 @@
         </div>
     </header>
 
-    <!-- Основной контент -->
+
     <main class="main-content py-4 flex-grow-1">
         @Body
     </main>
 
-    <!-- Футер с авторством -->
     <footer class="app-footer text-center py-3 border-top mt-auto">
         <div class="container text-muted small">
             <span>CineNote &copy; 2026 &bull; Профессиональный инструмент сценариста</span>
@@ -78,7 +77,7 @@
 
     private async Task HandleLogout()
     {
-        await AuthService.Logout(); // Убедись, что здесь без "Async"
+        await AuthService.Logout(); 
     }
 
     public void Dispose()

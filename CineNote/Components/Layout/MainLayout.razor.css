@@ -1,16 +1,16 @@
-/* Общий фон страницы (винтажная бумага) и идеальная типографика для русского языка */
+
 ::deep body {
     background-color: #fdfaf3 !important;
     color: #2b2b2b;
-    /* Профессиональный стек шрифтов для отличного отображения кириллицы на Windows, macOS и мобильных */
+
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    /* Сглаживание шрифтов для четкости текста */
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 }
 
-/* Верхняя шапка */
+
 .top-navbar {
     background: linear-gradient(135deg, #f7cb53 0%, #f1be36 100%) !important;
     border-bottom: 2px solid #e0b034;
@@ -18,7 +18,7 @@
     padding-bottom: 10px;
 }
 
-/* Логотип */
+
 .navbar-brand {
     color: #1a1a1a !important;
     font-size: 1.35rem;
@@ -30,7 +30,7 @@
     font-size: 1.4rem;
 }
 
-/* Ссылки навигации без синего цвета */
+
 ::deep .navbar-nav .nav-link,
 .navbar-nav .nav-link {
     color: #2c2c2c !important;
@@ -44,7 +44,7 @@
     align-items: center;
 }
 
-    /* Эффект при наведении мышкой */
+
     ::deep .navbar-nav .nav-link:hover,
     .navbar-nav .nav-link:hover {
         background-color: rgba(255, 255, 255, 0.45) !important;
@@ -52,7 +52,7 @@
         transform: translateY(-1px);
     }
 
-    /* Активная вкладка (белая плашка) */
+ 
     ::deep .navbar-nav .nav-link.active,
     .navbar-nav .nav-link.active {
         background-color: #ffffff !important;
@@ -61,7 +61,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     }
 
-/* Основной контент */
+
 .main-content {
     min-height: calc(100vh - 76px);
 }
