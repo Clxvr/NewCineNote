@@ -14,7 +14,7 @@ namespace CineNote.Services
             _contextFactory = contextFactory;
         }
 
-        public async Task<MovieProject> CreateProjectAsync(MovieProject project)
+        public async Task<MovieProject> AddProjectAsync(MovieProject project)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -33,7 +33,6 @@ namespace CineNote.Services
                 .ToListAsync();
         }
 
-
         public async Task<MovieProject?> GetProjectByIdAndUserAsync(int id, int userId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -41,7 +40,6 @@ namespace CineNote.Services
             return await context.MovieProjects
                 .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
         }
-
 
         public async Task<bool> UpdateProjectAsync(MovieProject project, int userId)
         {
@@ -55,12 +53,10 @@ namespace CineNote.Services
 
             existingProject.Title = project.Title;
 
-
             context.MovieProjects.Update(existingProject);
             return await context.SaveChangesAsync() > 0;
         }
 
-        
         public async Task<bool> DeleteProjectAsync(int id, int userId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();

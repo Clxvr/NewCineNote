@@ -8,6 +8,12 @@
         Thriller,
         SciFi,
         Horror,
+        Romance,
+        Fantasy,
+        Mystery,
+        Crime,
+        Animation,
+        Documentary,
         Other
     }
 }

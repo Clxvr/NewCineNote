@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using CineNote.Services
 @inject AuthService AuthService
+@inject NavigationManager Navigation
 @implements IDisposable
 
 <div class="page-wrapper d-flex flex-column min-vh-100">
@@ -77,7 +78,8 @@
 
     private async Task HandleLogout()
     {
-        await AuthService.Logout(); 
+        await AuthService.Logout();
+        Navigation.NavigateTo("/home");
     }
 
     public void Dispose()

@@ -9,6 +9,7 @@ public class MovieProject
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Название кинопроекта является обязательным полем.")]
+    [StringLength(50, ErrorMessage = "Название не должно превышать 50 символов.")]
     [Column("title")]
     public string Title { get; set; } = string.Empty;
 
@@ -16,14 +17,14 @@ public class MovieProject
     [Column("user_id")]
     public int UserId { get; set; }
 
-    // Навигационное свойство на создателя проекта:
+    [ForeignKey("UserId")]
     public User? User { get; set; }
 
     [Required(ErrorMessage = "Укажите жанр.")]
     [Column("genre")]
     public Genre Genre { get; set; }
 
-    [StringLength(500, ErrorMessage = "Логлайн не должен превышать 500 символов.")]
+    [StringLength(250, ErrorMessage = "Логлайн не должен превышать 250 символов.")]
     [Column("logline")]
     public string Logline { get; set; } = string.Empty;
 
@@ -31,7 +32,6 @@ public class MovieProject
     [Column("synopsis")]
     public string Synopsis { get; set; } = string.Empty;
 
-    // Коллекции для связи «один ко многим»:
     public ICollection<Character> Characters { get; set; } = new List<Character>();
     public ICollection<Scene> Scenes { get; set; } = new List<Scene>();
     public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();

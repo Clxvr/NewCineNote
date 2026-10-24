@@ -20,9 +20,9 @@ namespace CineNote.Models
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Пароль обязателен для заполнения.")]
-        [StringLength(100, MinimumLength = 8, ErrorMessage = "Пароль должен содержать от 8 до 100 символов.")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$",
-            ErrorMessage = "Пароль должен содержать хотя бы одну заглавную букву, одну строчную букву, одну цифру и один специальный символ.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Пароль должен быть не менее 8 символов.")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d).+$",
+            ErrorMessage = "Нужно минимум 8 символов, хотя бы одна заглавная буква и цифра.")]
         [Column("password")]
         public string Password { get; set; } = string.Empty;
 
@@ -30,7 +30,6 @@ namespace CineNote.Models
         public string GlobalRole { get; set; } = "Сценарист";
         public string? VerificationCode { get; set; }
         public bool IsEmailConfirmed { get; set; } = false;
-
 
         public ICollection<MovieProject> MovieProjects { get; set; } = new List<MovieProject>();
         public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();

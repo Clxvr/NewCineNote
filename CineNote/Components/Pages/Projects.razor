@@ -11,28 +11,17 @@
         <div class="alert alert-warning shadow-sm p-4 rounded-4">
             <h4>Требуется авторизация</h4>
             <p class="mb-3">Для просмотра ваших сценариев необходимо войти в систему.</p>
-            <a href="/login" class="btn btn-primary">Войти в аккаунт</a>
+            <a href="/login" class="btn btn-dark">Войти в аккаунт</a>
         </div>
     }
     else
     {
-        <!-- Панель информации о текущем пользователе -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 user-greeting">
-            <div class="mb-2 mb-md-0">
-                <span class="text-muted">👤 Вы вошли как: </span>
-                <strong class="text-dark">@AuthService.CurrentUser.Name</strong>
-                <span class="text-muted ms-1">(@AuthService.CurrentUser.Email)</span>
-            </div>
-            <button class="btn btn-outline-danger btn-sm px-3" @onclick="Logout">Выйти</button>
-        </div>
-
-        <!-- Шапка страницы с заголовком и кнопкой создания -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="fw-bold mb-1">Мои проекты</h2>
+                <h2 class="fw-bold mb-1" style="color: #1F2937;">Мои проекты</h2>
                 <p class="text-muted mb-0">Управляйте своими фильмами, сериалами и сценарными набросками</p>
             </div>
-            <a href="/projects/create" class="btn btn-primary btn-lg shadow-sm">
+            <a href="/projects/create" class="btn btn-dark btn-lg shadow-sm px-4">
                 <i class="bi bi-plus-lg me-2"></i>+ Новый проект
             </a>
         </div>
@@ -40,7 +29,7 @@
         @if (userProjects == null)
         {
             <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
+                <div class="spinner-border text-dark" role="status"></div>
                 <p class="text-muted mt-2">Загрузка ваших проектов...</p>
             </div>
         }
@@ -49,11 +38,11 @@
             <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-light">
                 <div class="card-body py-5">
                     <div class="mb-3">
-                        <i class="bi bi-film text-primary display-4"></i>
+                        <i class="bi bi-film text-dark display-4"></i>
                     </div>
                     <h4 class="fw-bold text-dark">У вас пока нет проектов</h4>
                     <p class="text-muted mb-4">Создайте свой первый кинопроект или сценарий с помощью кнопки выше!</p>
-                    <a href="/projects/create" class="btn btn-primary px-4">Создать первый проект</a>
+                    <a href="/projects/create" class="btn btn-dark px-4">Создать первый проект</a>
                 </div>
             </div>
         }
@@ -63,33 +52,54 @@
                 @foreach (var project in userProjects)
                 {
                     <div class="col-md-4 mb-4">
-                        <div class="card project-card p-4 h-100 d-flex flex-column border-0 shadow-sm rounded-4 position-relative overflow-hidden">
-                            <!-- Декоративная акцентная полоска сверху карточки -->
+                        <div class="card project-card p-4 h-100 d-flex flex-column border-0 shadow-sm rounded-4 position-relative overflow-hidden @(draggedProject == project ? "dragging" : "")"
+                             draggable="true"
+                             @ondragstart="() => OnDragStart(project)"
+                             @ondragend="OnDragEnd"
+                             @ondragover:preventDefault="true"
+                             @ondragenter="() => OnDragEnter(project)"
+                             @ondrop="() => OnDrop(project)">
                             <div class="card-accent-bar"></div>
 
-                            <!-- Шапка карточки: Жанр -->
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <span class="badge bg-light text-primary border px-2.5 py-1.5 rounded-pill small fw-semibold">
-                                    <i class="bi bi-tag-fill me-1"></i> @project.Genre
-                                </span>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="drag-handle" title="Зажмите для перетаскивания">
+                                        <i class="bi bi-grip-vertical fs-5"></i>
+                                    </span>
+                                    <span class="badge px-3 py-2 rounded-pill small fw-semibold genre-badge">
+                                        <i class="bi bi-tag-fill me-1"></i> @GetGenreDisplayName(project.Genre)
+                                    </span>
+                                </div>
+                                <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none" @onclick="async () => await DeleteProject(project.Id)" title="Удалить проект">
+                                    <i class="bi bi-trash3 me-1"></i>Удалить
+                                </button>
                             </div>
 
-                            <!-- Название проекта -->
-                            <h5 class="card-title fw-bold text-dark mb-2">@project.Title</h5>
-                            
-                            <!-- Логлайн / Описание -->
-                            <p class="card-text text-muted flex-grow-1 small lh-base">
-                                @(string.IsNullOrEmpty(project.Logline) ? "Логлайн или описание отсутствуют..." : project.Logline)
-                            </p>
+                            <h5 class="card-title fw-bold mb-3 text-center">@project.Title</h5>
 
-                            <!-- Кнопки управления проектом -->
-                            <div class="mt-4 pt-3 border-top d-flex gap-2">
-                                <a href="/projects/@project.Id" class="btn btn-primary btn-sm flex-grow-1 py-2 fw-semibold">
+                            <div class="mb-3 text-muted small author-info">
+                                <div>
+                                    <i class="bi bi-person me-1"></i> Автор: <strong>@(project.User?.Name ?? (project.UserId == AuthService.CurrentUser?.Id ? AuthService.CurrentUser.Name : "Не указан"))</strong>
+                                </div>
+                                <div class="mt-1">
+                                    <i class="bi bi-people me-1"></i> Соавторы:
+                                    @(project.ProjectShares != null && project.ProjectShares.Any(ps => ps.SharedWithUser != null)
+                                        ? string.Join(", ", project.ProjectShares.Where(ps => ps.SharedWithUser != null).Select(ps => ps.SharedWithUser!.Name))
+                                        : "отсутствуют")
+                                </div>
+                            </div>
+
+                            <div class="mb-3 flex-grow-1">
+                                <span class="fw-semibold text-dark small d-block mb-1">Краткое описание (логлайн):</span>
+                                <p class="card-text text-muted small lh-base mb-0">
+                                    @(string.IsNullOrEmpty(project.Logline) ? "отсутствует." : project.Logline)
+                                </p>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top">
+                                <a href="/projects/@project.Id" class="btn btn-dark btn-sm w-100 py-2 fw-semibold open-btn">
                                     <i class="bi bi-folder2-open me-1"></i> Открыть
                                 </a>
-                                <button class="btn btn-outline-danger btn-sm px-3 py-2" @onclick="() => DeleteProject(project.Id)" title="Удалить проект">
-                                    <i class="bi bi-trash"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -101,6 +111,7 @@
 
 @code {
     private List<MovieProject>? userProjects;
+    private MovieProject? draggedProject;
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,9 +138,62 @@
         }
     }
 
-    private void Logout()
+    private void OnDragStart(MovieProject project)
     {
-        AuthService.Logout();
+        draggedProject = project;
+    }
+
+    private void OnDragEnter(MovieProject targetProject)
+    {
+        if (draggedProject == null || draggedProject == targetProject)
+            return;
+
+        int originalIndex = userProjects!.IndexOf(draggedProject);
+        int targetIndex = userProjects.IndexOf(targetProject);
+
+        if (originalIndex != -1 && targetIndex != -1)
+        {
+            userProjects.RemoveAt(originalIndex);
+            userProjects.Insert(targetIndex, draggedProject);
+            StateHasChanged();
+        }
+    }
+
+    private void OnDrop(MovieProject targetProject)
+    {
+        draggedProject = null;
+    }
+
+    private void OnDragEnd()
+    {
+        draggedProject = null;
+        StateHasChanged();
+    }
+
+    private string GetGenreDisplayName(Genre genre)
+    {
+        return genre switch
+        {
+            Genre.Drama => "Драма",
+            Genre.Comedy => "Комедия",
+            Genre.Action => "Боевик",
+            Genre.Thriller => "Триллер",
+            Genre.SciFi => "Фантастика",
+            Genre.Horror => "Ужасы",
+            Genre.Romance => "Мелодрама",
+            Genre.Fantasy => "Фэнтези",
+            Genre.Mystery => "Детектив",
+            Genre.Crime => "Криминал",
+            Genre.Animation => "Анимация",
+            Genre.Documentary => "Документальный",
+            Genre.Other => "Другое",
+            _ => genre.ToString()
+        };
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
         Navigation.NavigateTo("/login");
     }
 }

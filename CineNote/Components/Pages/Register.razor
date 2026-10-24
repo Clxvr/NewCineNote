@@ -5,52 +5,77 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject EmailService EmailService
-<div class="container mt-5 register-container">
-    <div class="card shadow-sm p-4">
-        <h3 class="text-center mb-4">Регистрация в CineNote</h3>
 
-        <EditForm Model="@newUser" OnValidSubmit="HandleRegistration">
+<div class="container mt-5 register-container" style="max-width: 450px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <h3 class="text-center fw-bold mb-4" style="color: #1F2937;">Регистрация в CineNote</h3>
+
+        <EditForm EditContext="@editContext" OnSubmit="HandleRegistration">
             <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" />
 
             <div class="mb-3">
-                <label class="form-label">Имя:</label>
+                <label class="form-label fw-semibold">Имя:</label>
                 <InputText @bind-Value="newUser.Name" class="form-control" placeholder="Ваше имя" />
+                <div style="min-height: 22px;" class="mt-1">
+                    @if (isSubmitted)
+                    {
+                        <div class="text-danger small">
+                            <ValidationMessage For="@(() => newUser.Name)" />
+                        </div>
+                    }
+                </div>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Email:</label>
+                <label class="form-label fw-semibold">Email:</label>
                 <InputText @bind-Value="newUser.Email" class="form-control" placeholder="example@mail.com" />
+                <div style="min-height: 22px;" class="mt-1">
+                    @if (isSubmitted)
+                    {
+                        <div class="text-danger small">
+                            <ValidationMessage For="@(() => newUser.Email)" />
+                        </div>
+                    }
+                </div>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Пароль:</label>
+                <label class="form-label fw-semibold">Пароль:</label>
                 <div class="input-group">
                     <InputText @bind-Value="newUser.Password" type="@(showPassword ? "text" : "password")" class="form-control" placeholder="Пароль" />
                     <button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword">
                         @(showPassword ? "Скрыть" : "Показать")
                     </button>
                 </div>
+                <div style="min-height: 38px;" class="mt-1">
+                    @if (isSubmitted)
+                    {
+                        <div class="text-danger small">
+                            <ValidationMessage For="@(() => newUser.Password)" />
+                        </div>
+                    }
+                </div>
                 <div class="form-text text-muted" style="font-size: 0.75rem;">
-                    Мин. 8 символов, заглавная и строчная буквы, цифра и спецсимвол.
+                    Мин. 8 символов, заглавная буква и цифра.
                 </div>
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="alert alert-danger py-2">@errorMessage</div>
+                <div class="alert alert-danger py-2 small mb-3">@errorMessage</div>
             }
 
             @if (!string.IsNullOrEmpty(successMessage))
             {
-                <div class="alert alert-success py-2">@successMessage</div>
+                <div class="alert alert-success py-2 small mb-3">@successMessage</div>
             }
 
-            <button type="submit" class="btn btn-primary w-100 mb-3">Зарегистрироваться</button>
+            <button type="submit" class="btn w-100 py-2 fw-semibold mb-3 shadow-sm" style="background-color: #F59E0B; border: none; color: #fff;">
+                Зарегистрироваться
+            </button>
 
-            <div class="text-center">
-                <span class="text-muted">Уже есть аккаунт? </span>
-                <a href="/login">Войти</a>
+            <div class="text-center small text-muted">
+                Уже есть аккаунт? <a href="/login" class="text-decoration-none fw-semibold" style="color: #D97706;">Войти</a>
             </div>
         </EditForm>
     </div>
@@ -58,9 +83,16 @@
 
 @code {
     private User newUser = new();
+    private EditContext? editContext;
+    private bool isSubmitted = false;
     private string? errorMessage;
     private string? successMessage;
     private bool showPassword = false;
+
+    protected override void OnInitialized()
+    {
+        editContext = new(newUser);
+    }
 
     private void TogglePassword()
     {
@@ -69,8 +101,14 @@
 
     private async Task HandleRegistration()
     {
+        isSubmitted = true;
         errorMessage = null;
         successMessage = null;
+
+        if (editContext == null || !editContext.Validate())
+        {
+            return;
+        }
 
         try
         {
@@ -81,16 +119,13 @@
                 return;
             }
 
-        
             string code = new Random().Next(100000, 999999).ToString();
             newUser.VerificationCode = code;
             newUser.IsEmailConfirmed = false;
 
-    
             newUser.Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password);
             await UserService.AddUserAsync(newUser);
 
-   
             string subject = "Код подтверждения регистрации CineNote";
             string htmlMessage = $"<h2>Добро пожаловать, {newUser.Name}!</h2>" +
                                  $"<p>Ваш код подтверждения для завершения регистрации:</p>" +
@@ -101,7 +136,6 @@
             successMessage = "Код отправлен на почту! Перенаправление...";
             await Task.Delay(1500);
 
-        
             Navigation.NavigateTo($"/verify-email?email={newUser.Email}");
         }
         catch (Exception ex)

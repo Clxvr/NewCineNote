@@ -5,91 +5,86 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<div class="container mt-4 create-project-container" style="max-width: 700px;">
-    @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
-    {
-        <div class="alert alert-warning shadow-sm p-4 rounded-4">
-            <h4>Требуется авторизация</h4>
-            <p class="mb-3">Для создания проекта необходимо войти в систему.</p>
-            <a href="/login" class="btn btn-primary">Войти в аккаунт</a>
+<div class="container mt-4" style="max-width: 650px;">
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="color: #1F2937;">Новый сценарный проект</h2>
+                <p class="text-muted mb-0">Заполните основную информацию о вашей будущей истории</p>
+            </div>
+            <a href="/projects" class="btn btn-outline-secondary btn-sm px-3 mt-1">Назад к списку</a>
         </div>
-    }
-    else
-    {
-        <div class="card shadow-sm border-0 rounded-4 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h3 class="fw-bold mb-1">Новый сценарный проект</h3>
-                    <p class="text-muted mb-0">Заполните основную информацию о вашей будущей истории</p>
+
+        <EditForm Model="@newProject" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Название фильма / сериала</label>
+                <InputText class="form-control" @bind-Value="newProject.Title" placeholder="Например: Побег из Шоушенка" />
+                <div class="text-danger small mt-1">
+                    <ValidationMessage For="@(() => newProject.Title)" />
                 </div>
-                <a href="/projects" class="btn btn-outline-secondary btn-sm px-3">Назад к списку</a>
             </div>
 
-            <EditForm Model="newProject" OnValidSubmit="HandleCreate">
-                <DataAnnotationsValidator />
-                <ValidationSummary class="alert alert-danger mb-3 rounded-3 small" />
-
-                <!-- Название проекта -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Название фильма / сериала</label>
-                    <InputText class="form-control" @bind-Value="newProject.Title" placeholder="Например: Побег из Шоушенка" />
-                    <ValidationMessage For="@(() => newProject.Title)" class="text-danger small mt-1" />
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Жанр</label>
+                <InputSelect class="form-select" @bind-Value="newProject.Genre">
+                    @foreach (Genre genre in Enum.GetValues(typeof(Genre)))
+                    {
+                        <option value="@genre">@GetGenreDisplayName(genre)</option>
+                    }
+                </InputSelect>
+                <div class="text-danger small mt-1">
+                    <ValidationMessage For="@(() => newProject.Genre)" />
                 </div>
+            </div>
 
-                <!-- Выбор жанра (из enum Genre) -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Жанр</label>
-                    <InputSelect class="form-select" @bind-Value="newProject.Genre">
-                        @foreach (var genre in Enum.GetValues(typeof(Genre)))
-                        {
-                            <option value="@genre">@genre</option>
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="@(() => newProject.Genre)" class="text-danger small mt-1" />
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Логлайн <span class="text-muted fw-normal font-monospace" style="font-size: 0.8rem;">(1-2 предложения, до 250 символов)</span></label>
+                <InputTextArea class="form-control" rows="3" @bind-Value="newProject.Logline" placeholder="Опишите главного героя, главный конфликт и цель..." />
+                <div class="text-danger small mt-1">
+                    <ValidationMessage For="@(() => newProject.Logline)" />
                 </div>
+            </div>
 
-                <!-- Логлайн -->
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Логлайн <span class="text-muted fw-normal">(краткая суть до 500 символов)</span></label>
-                    <InputTextArea class="form-control" rows="4" @bind-Value="newProject.Logline" placeholder="Опишите главного героя, главный конфликт и цель..." />
-                    <ValidationMessage For="@(() => newProject.Logline)" class="text-danger small mt-1" />
-                </div>
-
-                <!-- Кнопки управления -->
-                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                    <a href="/projects" class="btn btn-light px-4">Отмена</a>
-                    <button type="submit" class="btn btn-primary px-4 fw-semibold" disabled="@isSubmitting">
-                        @if (isSubmitting)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                        }
-                        Создать проект
-                    </button>
-                </div>
-            </EditForm>
-        </div>
-    }
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <a href="/projects" class="btn btn-light px-4">Отмена</a>
+                <button type="submit" class="btn btn-dark px-4">Создать проект</button>
+            </div>
+        </EditForm>
+    </div>
 </div>
 
 @code {
     private MovieProject newProject = new();
-    private bool isSubmitting = false;
 
-    private async Task HandleCreate()
+    private async Task HandleValidSubmit()
     {
         if (AuthService.CurrentUser == null) return;
 
-        isSubmitting = true;
-
-        // Привязываем проект к текущему авторизованному пользователю
         newProject.UserId = AuthService.CurrentUser.Id;
-
-        // Вызываем метод сервиса для сохранения в БД
-        await ProjectService.CreateProjectAsync(newProject);
-
-        isSubmitting = false;
-
-        // Возвращаем пользователя на дашборд с проектами
+        await ProjectService.AddProjectAsync(newProject);
         Navigation.NavigateTo("/projects");
+    }
+
+    private string GetGenreDisplayName(Genre genre)
+    {
+        return genre switch
+        {
+            Genre.Drama => "Драма",
+            Genre.Comedy => "Комедия",
+            Genre.Action => "Боевик",
+            Genre.Thriller => "Триллер",
+            Genre.SciFi => "Фантастика",
+            Genre.Horror => "Ужасы",
+            Genre.Romance => "Мелодрама",
+            Genre.Fantasy => "Фэнтези",
+            Genre.Mystery => "Детектив",
+            Genre.Crime => "Криминал",
+            Genre.Animation => "Анимация",
+            Genre.Documentary => "Документальный",
+            Genre.Other => "Другое",
+            _ => genre.ToString()
+        };
     }
 }
