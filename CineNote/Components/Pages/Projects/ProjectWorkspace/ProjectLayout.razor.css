@@ -1,0 +1,38 @@
+﻿.workspace-container {
+    max-width: 1400px;
+    margin: 1.5rem auto;
+}
+
+.genre-badge {
+    background-color: #E5E7EB;
+    color: #1F2937;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-card {
+    background-color: #F9FAFB;
+    border: 1px solid #E5E7EB;
+}
+
+.nav-title {
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+    color: #6B7280;
+}
+
+.nav-menu-btn {
+    border: none;
+    background: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.bg-hover-light:hover {
+    background-color: #F3F4F6 !important;
+    color: #1F2937 !important;
+}
+
+.content-card {
+    min-height: 450px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+}

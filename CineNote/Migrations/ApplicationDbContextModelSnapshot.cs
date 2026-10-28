@@ -45,6 +45,10 @@ namespace CineNote.Migrations
                         .HasColumnType("nvarchar(30)")
                         .HasColumnName("name");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("int")
+                        .HasColumnName("role");
+
                     b.HasKey("Id");
 
                     b.HasIndex("MovieProjectId");
@@ -140,8 +144,8 @@ namespace CineNote.Migrations
 
                     b.Property<string>("Logline")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
                         .HasColumnName("logline");
 
                     b.Property<string>("Synopsis")
@@ -152,7 +156,8 @@ namespace CineNote.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("title");
 
                     b.Property<int>("UserId")

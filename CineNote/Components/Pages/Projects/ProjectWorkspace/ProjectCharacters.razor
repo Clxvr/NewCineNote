@@ -1,0 +1,182 @@
+﻿@page "/projects/{ProjectId:int}/characters"
+@layout ProjectLayout
+@using CineNote.Models
+@using CineNote.Services
+@inject CharacterService CharacterService
+@inject NavigationManager Navigation
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Герои проекта</h3>
+        <p class="text-muted small mb-0">Каталог персонажей и их роль в структуре сценария</p>
+    </div>
+    <button class="btn btn-primary rounded-3 px-3 py-2 fw-semibold" @onclick="OpenCreateModal">
+        + Добавить героя
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else if (!characters.Any())
+{
+    <div class="text-center py-5 border rounded-3 bg-light">
+        <p class="text-muted mb-0">Персонажи пока не добавлены.</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var hero in characters)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-3 p-3">
+                    <div class="card-body d-flex flex-column justify-content-between p-0">
+                        <div class="flex-grow-1 mt-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="fw-bold text-dark m-0 fs-6">@hero.Name</h5>
+                                <!-- Динамический бейдж в зависимости от роли -->
+                                <span class="badge @GetRoleBadgeClass(hero.Role) px-2 py-1 small">@hero.Role.ToDisplayName()</span>
+                            </div>
+                            <span class="fw-semibold text-dark small d-block mb-1 mt-3">Характер и роль в сюжете:</span>
+                            <p class="text-muted small lh-base mb-0" style="white-space: pre-wrap;">
+                                @(string.IsNullOrEmpty(hero.Description) ? "описание отсутствует." : hero.Description)
+                            </p>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
+                            <button class="btn btn-sm btn-outline-secondary rounded-2" @onclick="() => OpenEditModal(hero)">
+                                Редактировать
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-2" @onclick="() => DeleteCharacter(hero.Id)">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (showModal)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-3">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">@(editingCharacter.Id == 0 ? "Новый персонаж" : "Редактирование персонажа")</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <EditForm Model="editingCharacter" OnValidSubmit="SaveCharacter">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body py-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">Имя героя:</label>
+                            <InputText @bind-Value="editingCharacter.Name" class="form-control rounded-3" placeholder="Введите имя" />
+                            <ValidationMessage For="() => editingCharacter.Name" class="text-danger small" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">Роль в сюжете:</label>
+                            <InputSelect @bind-Value="editingCharacter.Role" class="form-select rounded-3">
+                                @foreach (CharacterRole role in Enum.GetValues(typeof(CharacterRole)))
+                                {
+                                    <option value="@role">@role.ToDisplayName()</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-dark">Описание и характер:</label>
+                            <InputTextArea @bind-Value="editingCharacter.Description" class="form-control rounded-3" rows="4" placeholder="Опишите характер, мотивацию и амплуа..." />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-3" @onclick="CloseModal">Отмена</button>
+                        <button type="submit" class="btn btn-primary rounded-3 px-4">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    private List<Character> characters = new();
+    private Character editingCharacter = new();
+    private bool isLoading = true;
+    private bool showModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCharacters();
+    }
+
+    private async Task LoadCharacters()
+    {
+        isLoading = true;
+        characters = await CharacterService.GetCharactersByProjectIdAsync(ProjectId);
+        isLoading = false;
+    }
+
+    private void OpenCreateModal()
+    {
+        editingCharacter = new Character { MovieProjectId = ProjectId, Role = CharacterRole.Supporting };
+        showModal = true;
+    }
+
+    private void OpenEditModal(Character character)
+    {
+        editingCharacter = new Character
+            {
+                Id = character.Id,
+                MovieProjectId = character.MovieProjectId,
+                Name = character.Name,
+                Description = character.Description,
+                Role = character.Role
+            };
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SaveCharacter()
+    {
+        if (editingCharacter.Id == 0)
+        {
+            await CharacterService.AddCharacterAsync(editingCharacter);
+        }
+        else
+        {
+            await CharacterService.UpdateCharacterAsync(editingCharacter);
+        }
+
+        showModal = false;
+        await LoadCharacters();
+    }
+
+    private async Task DeleteCharacter(int id)
+    {
+        await CharacterService.DeleteCharacterAsync(id);
+        await LoadCharacters();
+    }
+
+    // Метод для назначения стилей бейджа в зависимости от роли
+    private string GetRoleBadgeClass(CharacterRole role)
+    {
+        return role switch
+        {
+            CharacterRole.Protagonist => "bg-primary text-white shadow-sm",
+            CharacterRole.Antagonist => "bg-danger text-white shadow-sm",
+            _ => "bg-light text-dark border"
+        };
+    }
+}

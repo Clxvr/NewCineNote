@@ -12,7 +12,6 @@ public class Character
     [Column("movie_project_id")]
     public int MovieProjectId { get; set; }
 
-    // Навигационное свойство на проект:
     public MovieProject? MovieProject { get; set; }
 
     [Required(ErrorMessage = "Имя персонажа обязательно для заполнения.")]
@@ -23,6 +22,9 @@ public class Character
     [Column("description")]
     public string Description { get; set; } = string.Empty;
 
-    // Связь со сценами (многие ко многим через промежуточную таблицу SceneCharacter):
+    [Required]
+    [Column("role")]
+    public CharacterRole Role { get; set; } = CharacterRole.Supporting;
+
     public ICollection<SceneCharacter> SceneCharacters { get; set; } = new List<SceneCharacter>();
 }
