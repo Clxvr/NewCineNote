@@ -1,4 +1,5 @@
-﻿using CineNote.Data;
+﻿
+using CineNote.Data;
 using CineNote.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,8 +54,24 @@ namespace CineNote.Services
 
             existingProject.Title = project.Title;
 
-            context.MovieProjects.Update(existingProject);
             return await context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> UpdateSynopsisAsync(int projectId, int userId, string synopsis)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var project = await context.MovieProjects
+                .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
+
+            if (project == null)
+                return false;
+
+            project.Synopsis = synopsis;
+
+            await context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<bool> DeleteProjectAsync(int id, int userId)
@@ -68,6 +85,7 @@ namespace CineNote.Services
                 return false;
 
             context.MovieProjects.Remove(project);
+
             return await context.SaveChangesAsync() > 0;
         }
     }

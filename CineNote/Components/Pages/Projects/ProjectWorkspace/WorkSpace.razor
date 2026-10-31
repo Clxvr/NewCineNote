@@ -8,9 +8,7 @@
 @if (isLoading)
 {
     <div class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Загрузка...</span>
-        </div>
+        <div class="spinner-border text-primary" role="status"></div>
     </div>
 }
 else if (project == null)
@@ -22,43 +20,81 @@ else if (project == null)
 else
 {
     <div class="d-flex flex-column gap-4">
-        <!-- Главный акцентный блок: Логлайн на всю ширину -->
+
+        <!-- Логлайн -->
         <div class="p-4 rounded-4 bg-light border-0 shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="fw-bold text-dark m-0">Логлайн</h5>
-                <span class="badge bg-primary bg-opacity-10 text-primary small px-3 py-2 rounded-pill">Главная идея</span>
+
+                <span class="badge bg-primary bg-opacity-10 text-primary small px-3 py-2 rounded-pill">
+                    Главная идея
+                </span>
             </div>
+
             <p class="text-dark fs-5 mb-0 lh-base" style="white-space: pre-wrap;">
-                @(string.IsNullOrEmpty(project.Logline) ? "Логлайн еще не добавлен..." : project.Logline)
+                @(string.IsNullOrEmpty(project.Logline)
+                    ? "Логлайн еще не добавлен..."
+                    : project.Logline)
             </p>
         </div>
 
-        <!-- Заглушка под будущий модуль синопсиса через API -->
-        <div class="p-4 rounded-4 border border-dashed bg-white shadow-sm text-center py-5">
+        <!-- Синопсис -->
+        <div class="synopsis-section p-4 rounded-4">
+
             <div class="mb-3">
-                <i class="bi bi-cpu fs-1 text-muted"></i>
+                <h5 class="fw-bold text-dark mb-1">Синопсис</h5>
+
+                <p class="text-muted small mb-0">
+                    Развернутое описание истории, событий и персонажей вашего фильма.
+                </p>
             </div>
-            <h5 class="fw-bold text-dark">Модуль генерации/форматирования синопсиса (API)</h5>
-            <p class="text-muted small mx-auto mb-4" style="max-width: 500px;">
-                Здесь в будущем появится интеграция с внешним сервисом для автоматического форматирования и структурирования синопсиса вашего сценария.
-            </p>
-            <button class="btn btn-outline-dark rounded-pill px-4 fw-semibold" disabled>
-                Подключить API (скоро)
-            </button>
+
+            <SynopsisEditor @key="ProjectId"
+                            InitialContent="@currentSynopsis"
+                            OnSave="HandleSaveSynopsis" />
+
         </div>
+
     </div>
 }
 
 @code {
-    [Parameter] public int ProjectId { get; set; }
+    [Parameter]
+    public int ProjectId { get; set; }
+
     private MovieProject? project;
     private bool isLoading = true;
+
+    private string currentSynopsis = string.Empty;
 
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
-        // Передаем ID пользователя = 1 для контекста
+
         project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, 1);
+
+        if (project != null)
+        {
+            currentSynopsis = project.Synopsis ?? string.Empty;
+        }
+
         isLoading = false;
+    }
+
+    private async Task HandleSaveSynopsis(string updatedContent)
+    {
+        bool result = await ProjectService.UpdateSynopsisAsync(
+            ProjectId,
+            1,
+            updatedContent
+        );
+
+        if (!result)
+        {
+            throw new Exception("Не удалось сохранить синопсис.");
+        }
+
+        currentSynopsis = updatedContent;
+        project!.Synopsis = updatedContent;
     }
 }

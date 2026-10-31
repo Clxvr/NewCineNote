@@ -1,0 +1,137 @@
+﻿@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div class="synopsis-editor">
+
+    <h2 class="synopsis-print-title">Синопсис</h2>
+
+    <div class="synopsis-editor-area">
+        <div @ref="editorElement"
+             class="synopsis-quill"
+             style="min-height: 350px;">
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+
+        <span class="text-muted small">
+            @saveMessage
+        </span>
+
+        <div class="d-flex gap-2">
+
+            <button class="btn btn-outline-secondary rounded-3 px-3"
+                    @onclick="PrintContent"
+                    disabled="@(jsModule == null || isSaving)">
+                <icon name="printer" />
+                Печать
+            </button>
+
+            <button class="btn btn-primary px-4 rounded-3"
+                    @onclick="SaveContent"
+                    disabled="@isSaving">
+
+                @(isSaving ? "Сохранение..." : "Сохранить")
+
+            </button>
+
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public string InitialContent { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> OnSave { get; set; }
+
+    private ElementReference editorElement;
+    private IJSObjectReference? jsModule;
+
+    private bool isSaving;
+    private string saveMessage = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                jsModule = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", "./js/synopsisEditor.js");
+
+                await jsModule.InvokeVoidAsync(
+                    "initializeEditor",
+                    editorElement,
+                    InitialContent);
+            }
+            catch (Exception ex)
+            {
+                saveMessage = "Ошибка загрузки редактора: " + ex.Message;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task SaveContent()
+    {
+        if (jsModule == null)
+        {
+            saveMessage = "Редактор не загружен.";
+            return;
+        }
+
+        isSaving = true;
+        saveMessage = string.Empty;
+
+        try
+        {
+            string content = await jsModule.InvokeAsync<string>(
+                "getContent", editorElement);
+
+            await OnSave.InvokeAsync(content);
+
+            saveMessage = "Синопсис сохранён";
+        }
+        catch (Exception ex)
+        {
+            saveMessage = "Ошибка сохранения: " + ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task PrintContent()
+    {
+        if (jsModule == null)
+            return;
+
+        try
+        {
+            await jsModule.InvokeVoidAsync("printPage");
+        }
+        catch (Exception ex)
+        {
+            saveMessage = "Ошибка печати: " + ex.Message;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (jsModule != null)
+        {
+            try
+            {
+                await jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+}

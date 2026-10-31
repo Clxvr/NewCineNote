@@ -28,9 +28,12 @@ public class MovieProject
     [Column("logline")]
     public string Logline { get; set; } = string.Empty;
 
-    [StringLength(5000, ErrorMessage = "Синопсис не должен превышать 5000 символов.")]
-    [Column("synopsis")]
+
+ 
+    [StringLength(20000, ErrorMessage = "Синопсис слишком длинный.")]
+    [Column("synopsis", TypeName = "nvarchar(max)")]
     public string Synopsis { get; set; } = string.Empty;
+
 
     public ICollection<Character> Characters { get; set; } = new List<Character>();
     public ICollection<Scene> Scenes { get; set; } = new List<Scene>();

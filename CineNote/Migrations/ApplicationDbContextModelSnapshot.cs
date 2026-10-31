@@ -88,6 +88,49 @@ namespace CineNote.Migrations
                     b.ToTable("project_shares", (string)null);
                 });
 
+            modelBuilder.Entity("CineNote.Models.Scene", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActionDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("action_description");
+
+                    b.Property<string>("LocationName")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("location_name");
+
+                    b.Property<int>("LocationType")
+                        .HasColumnType("int")
+                        .HasColumnName("location_type");
+
+                    b.Property<int>("MovieProjectId")
+                        .HasColumnType("int")
+                        .HasColumnName("movie_project_id");
+
+                    b.Property<int>("SceneNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("scene_number");
+
+                    b.Property<int>("TimeOfDay")
+                        .HasColumnType("int")
+                        .HasColumnName("time_of_day");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MovieProjectId");
+
+                    b.ToTable("scenes", (string)null);
+                });
+
             modelBuilder.Entity("CineNote.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -171,53 +214,6 @@ namespace CineNote.Migrations
                     b.ToTable("movie_projects", (string)null);
                 });
 
-            modelBuilder.Entity("Scene", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ActionDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("action_description");
-
-                    b.Property<string>("LocationName")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)")
-                        .HasColumnName("location_name");
-
-                    b.Property<string>("LocationType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnName("location_type");
-
-                    b.Property<int>("MovieProjectId")
-                        .HasColumnType("int")
-                        .HasColumnName("movie_project_id");
-
-                    b.Property<int>("SceneNumber")
-                        .HasColumnType("int")
-                        .HasColumnName("scene_number");
-
-                    b.Property<string>("TimeOfDay")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnName("time_of_day");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MovieProjectId");
-
-                    b.ToTable("scenes", (string)null);
-                });
-
             modelBuilder.Entity("SceneCharacter", b =>
                 {
                     b.Property<int>("Id")
@@ -274,6 +270,17 @@ namespace CineNote.Migrations
                     b.Navigation("SharedWithUser");
                 });
 
+            modelBuilder.Entity("CineNote.Models.Scene", b =>
+                {
+                    b.HasOne("MovieProject", "MovieProject")
+                        .WithMany("Scenes")
+                        .HasForeignKey("MovieProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MovieProject");
+                });
+
             modelBuilder.Entity("MovieProject", b =>
                 {
                     b.HasOne("CineNote.Models.User", "User")
@@ -285,17 +292,6 @@ namespace CineNote.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Scene", b =>
-                {
-                    b.HasOne("MovieProject", "MovieProject")
-                        .WithMany("Scenes")
-                        .HasForeignKey("MovieProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MovieProject");
-                });
-
             modelBuilder.Entity("SceneCharacter", b =>
                 {
                     b.HasOne("Character", "Character")
@@ -304,7 +300,7 @@ namespace CineNote.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Scene", "Scene")
+                    b.HasOne("CineNote.Models.Scene", "Scene")
                         .WithMany("SceneCharacters")
                         .HasForeignKey("SceneId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -316,6 +312,11 @@ namespace CineNote.Migrations
                 });
 
             modelBuilder.Entity("Character", b =>
+                {
+                    b.Navigation("SceneCharacters");
+                });
+
+            modelBuilder.Entity("CineNote.Models.Scene", b =>
                 {
                     b.Navigation("SceneCharacters");
                 });
@@ -334,11 +335,6 @@ namespace CineNote.Migrations
                     b.Navigation("ProjectShares");
 
                     b.Navigation("Scenes");
-                });
-
-            modelBuilder.Entity("Scene", b =>
-                {
-                    b.Navigation("SceneCharacters");
                 });
 #pragma warning restore 612, 618
         }

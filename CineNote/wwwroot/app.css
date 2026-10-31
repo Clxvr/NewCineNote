@@ -1,3 +1,4 @@
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -13,7 +14,7 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
@@ -37,7 +38,7 @@ h1:focus {
 }
 
 .blazor-error-boundary {
-    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxucz14bWxucz14bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PC9zdmc+) no-repeat 1rem/1.8rem, #b32121;
     padding: 1rem 1rem 1rem 3.7rem;
     color: white;
 }
@@ -49,14 +50,175 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
-/* Подключаем современный шрифт Montserrat ко всему сайту */
+
+/* Основной шрифт */
 body, button, input, select, textarea {
     font-family: 'Montserrat', -apple-system, Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Фон под цвет сценарной бумаги */
+/* Фон сайта */
 body {
     background-color: #fdfaf3 !important;
+}
+
+/* Блок синопсиса */
+.synopsis-section {
+    background: #f8f9fb;
+    border: 1px solid #eceef2;
+}
+
+/* Область редактора */
+.synopsis-editor-area {
+    background: #ffffff;
+    border: 1px solid #e9ebef;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Панель инструментов */
+.synopsis-quill .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid #eef0f3;
+    padding: 12px 14px;
+    background: #ffffff;
+}
+
+/* Контейнер редактора */
+.synopsis-quill .ql-container.ql-snow {
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    color: #292d32;
+}
+
+/* Текстовая область */
+.synopsis-quill .ql-editor {
+    min-height: 350px;
+    padding: 22px;
+    line-height: 1.8;
+}
+
+    /* Подсказка пустого редактора */
+    .synopsis-quill .ql-editor.ql-blank::before {
+        color: #adb3bd;
+        font-style: normal;
+        left: 22px;
+    }
+
+/* Заголовок печатного документа */
+.synopsis-print-title {
+    display: none;
+}
+
+/* ПЕЧАТЬ */
+@media print {
+
+    @page {
+        size: A4;
+        margin: 20mm;
+    }
+
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+        /* Скрываем остальные элементы сайта */
+        body * {
+            visibility: hidden !important;
+        }
+
+    /* Показываем редактор */
+    .synopsis-editor,
+    .synopsis-editor * {
+        visibility: visible !important;
+    }
+
+    /* Перемещаем синопсис в начало листа */
+    .synopsis-editor {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        box-shadow: none !important;
+    }
+
+    /* Заголовок */
+    .synopsis-print-title {
+        display: block !important;
+        text-align: center;
+        font-family: "Times New Roman", serif !important;
+        font-size: 14pt !important;
+        font-weight: normal !important;
+        color: black !important;
+        margin: 0 0 20px 0 !important;
+    }
+
+    /* Скрываем панель форматирования */
+    .synopsis-quill .ql-toolbar {
+        display: none !important;
+    }
+
+    /* Убираем рамки */
+    .synopsis-editor-area,
+    .synopsis-quill .ql-container {
+        border: none !important;
+        background: white !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Текст документа */
+    .synopsis-quill .ql-editor {
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        font-family: "Times New Roman", serif !important;
+        font-size: 14pt !important;
+        line-height: 1.5 !important;
+        color: black !important;
+    }
+
+        .synopsis-quill .ql-editor * {
+            font-family: "Times New Roman", serif !important;
+            font-size: 14pt !important;
+            color: black !important;
+            background: transparent !important;
+        }
+
+        .synopsis-quill .ql-editor p {
+            text-align: justify !important;
+            text-indent: 1.25cm;
+            margin: 0 !important;
+        }
+
+        .synopsis-quill .ql-editor h1,
+        .synopsis-quill .ql-editor h2,
+        .synopsis-quill .ql-editor h3 {
+            text-align: left !important;
+            text-indent: 0 !important;
+        }
+
+        .synopsis-quill .ql-editor ol,
+        .synopsis-quill .ql-editor ul {
+            padding-left: 1cm;
+        }
+
+    /* Скрываем кнопки и сообщение о сохранении */
+    .synopsis-editor > .d-flex {
+        display: none !important;
+    }
+
+    /* Убираем подсказку пустого редактора */
+    .ql-editor.ql-blank::before {
+        display: none !important;
+    }
 }
