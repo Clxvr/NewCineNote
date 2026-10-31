@@ -1,39 +1,69 @@
-﻿
-export function initializeEditor(element, initialContent) {
+﻿export function printContent(element) {
+    const content = element.__quill.root.innerHTML;
 
-    if (element.__quill) {
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+
+    if (!printWindow) {
+        alert('Разрешите всплывающие окна для печати.');
         return;
     }
 
-    const quill = new Quill(element, {
-        theme: 'snow',
+    printWindow.document.open();
 
-        modules: {
-            toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline'],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                [{ align: [] }],
-                ['link'],
-                ['clean']
-            ]
-        }
-    });
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <title>Синопсис</title>
 
-    element.__quill = quill;
+            <style>
+                @page {
+                    size: A4;
+                    margin: 20mm;
+                }
 
-    quill.root.innerHTML = initialContent || '';
-}
+                body {
+                    font-family: "Times New Roman", serif;
+                    font-size: 14pt;
+                    line-height: 1.5;
+                    color: black;
+                }
 
-export function getContent(element) {
+                h2 {
+                    text-align: center;
+                    font-size: 16pt;
+                    margin-bottom: 25px;
+                }
 
-    if (!element.__quill) {
-        return '';
-    }
+                p {
+                    text-align: justify;
+                    text-indent: 1.25cm;
+                    margin: 0;
+                }
 
-    return element.__quill.root.innerHTML;
-}
+                h1, h2, h3 {
+                    text-align: left;
+                    text-indent: 0;
+                }
 
-export function printPage() {
-    window.print();
+                ol, ul {
+                    padding-left: 1cm;
+                }
+            </style>
+        </head>
+
+        <body>
+            <h2>Синопсис</h2>
+            <main>${content}</main>
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+
+    printWindow.onload = function () {
+        printWindow.focus();
+        printWindow.print();
+    };
 }

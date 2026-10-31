@@ -111,14 +111,7 @@
         if (jsModule == null)
             return;
 
-        try
-        {
-            await jsModule.InvokeVoidAsync("printPage");
-        }
-        catch (Exception ex)
-        {
-            saveMessage = "Ошибка печати: " + ex.Message;
-        }
+        await jsModule.InvokeVoidAsync("printContent", editorElement);
     }
 
     public async ValueTask DisposeAsync()
