@@ -1,57 +1,95 @@
-﻿@inherits LayoutComponentBase
+﻿@using CineNote.Components.Layout
+@layout MainLayout
+@inherits LayoutComponentBase
 @using CineNote.Models
 @using CineNote.Services
 @inject MovieProjectService ProjectService
 @inject NavigationManager Navigation
 
 <div class="container-fluid workspace-container px-4 py-3">
-    @if (project == null)
+    @if (isLoading)
     {
         <div class="text-center py-5">
-            <div class="spinner-border text-dark" role="status"></div>
-            <p class="text-muted mt-2">Загрузка контекста проекта...</p>
+            <div class="spinner-border workspace-spinner"></div>
+        </div>
+    }
+    else if (project == null)
+    {
+        <div class="text-center py-5">
+            <p class="text-muted">Проект не найден.</p>
+            <a href="/projects">Вернуться к проектам</a>
         </div>
     }
     else
     {
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom px-2">
+        <div class="workspace-header d-flex justify-content-between align-items-start mb-4 pb-3 px-2">
             <div>
-                <a href="/projects" class="text-decoration-none text-muted small fw-semibold">⬅ Назад к списку проектов</a>
-                <h2 class="fw-bold m-0 mt-1 text-dark">@project.Title</h2>
-                <span class="badge px-3 py-2 rounded-pill small fw-semibold mt-2 genre-badge">
-                    <i class="bi bi-tag-fill me-1"></i> @GetGenreDisplayName(project.Genre)
-                </span>
+                <h2 class="workspace-project-title fw-bold m-0">@project.Title</h2>
+
+                <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+                    @if (!isEditingGenre)
+                    {
+                        <span class="workspace-genre">
+                            <i class="bi bi-tag-fill me-1"></i>
+                            @GetGenreDisplayName(project.Genre)
+                        </span>
+
+                        <button class="workspace-edit-genre" @onclick="StartEditingGenre">
+                            <i class="bi bi-pencil"></i>
+                            Изменить жанр
+                        </button>
+                    }
+                    else
+                    {
+                        <select class="form-select form-select-sm workspace-genre-select" @bind="selectedGenre">
+                            @foreach (Genre genre in Enum.GetValues(typeof(Genre)))
+                            {
+                                <option value="@genre">@GetGenreDisplayName(genre)</option>
+                            }
+                        </select>
+
+                        <button class="btn workspace-button btn-sm" @onclick="SaveGenre" disabled="@isSavingGenre">Сохранить</button>
+                        <button class="btn workspace-cancel-button btn-sm" @onclick="CancelEditingGenre">Отмена</button>
+                    }
+                </div>
             </div>
+
+         
         </div>
 
         <div class="row g-4">
-            <!-- Узкая боковая панель (col-lg-2) -->
             <div class="col-12 col-lg-2">
-                <div class="card border-0 shadow-sm rounded-4 p-3 sidebar-card">
-                    <span class="text-muted small fw-bold d-block mb-3 px-2 text-uppercase nav-title">Навигация</span>
+                <div class="workspace-sidebar">
+                    <span class="workspace-sidebar-title d-block mb-3 px-2 text-uppercase">
+                        Рабочее пространство
+                    </span>
+
                     <div class="d-flex flex-column gap-2">
-                        <NavLink class="btn nav-menu-btn text-start py-2 px-3 rounded-3 fw-semibold small text-dark text-decoration-none bg-hover-light d-flex align-items-center" href="@($"/projects/{ProjectId}")" Match="NavLinkMatch.All" ActiveClass="btn-dark text-white shadow-sm">
-                            <i class="bi bi-file-earmark-text me-2"></i> Логлайн
+                        <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}")" Match="NavLinkMatch.All">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Обзор проекта
                         </NavLink>
 
-                        <NavLink class="btn nav-menu-btn text-start py-2 px-3 rounded-3 fw-semibold small text-dark text-decoration-none bg-hover-light d-flex align-items-center" href="@($"/projects/{ProjectId}/scenes")" ActiveClass="btn-dark text-white shadow-sm">
-                            <i class="bi bi-film me-2"></i> Сцены
+                        <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}/scenes")">
+                            <i class="bi bi-film"></i>
+                            Сцены
                         </NavLink>
 
-                        <NavLink class="btn nav-menu-btn text-start py-2 px-3 rounded-3 fw-semibold small text-dark text-decoration-none bg-hover-light d-flex align-items-center" href="@($"/projects/{ProjectId}/characters")" ActiveClass="btn-dark text-white shadow-sm">
-                            <i class="bi bi-people me-2"></i> Персонажи
+                        <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}/characters")">
+                            <i class="bi bi-people"></i>
+                            Персонажи
                         </NavLink>
 
-                        <NavLink class="btn nav-menu-btn text-start py-2 px-3 rounded-3 fw-semibold small text-dark text-decoration-none bg-hover-light d-flex align-items-center" href="@($"/projects/{ProjectId}/share")" ActiveClass="btn-dark text-white shadow-sm">
-                            <i class="bi bi-share me-2"></i> Доступ
+                        <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}/share")">
+                            <i class="bi bi-share"></i>
+                            Доступ к проекту
                         </NavLink>
                     </div>
                 </div>
             </div>
 
-            <!-- Расширенная зона контента (col-lg-10) -->
             <div class="col-12 col-lg-10">
-                <div class="card border-0 shadow-sm rounded-4 p-4 content-card min-vh-75">
+                <div class="workspace-content p-4">
                     @Body
                 </div>
             </div>
@@ -60,26 +98,74 @@
 </div>
 
 @code {
-    private int ProjectId;
-    private MovieProject? project;
+    [Parameter]
+    public int ProjectId { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private MovieProject? project;
+    private bool isLoading = true;
+    private bool isEditingGenre;
+    private bool isSavingGenre;
+    private Genre selectedGenre;
+
+    protected override async Task OnParametersSetAsync()
     {
+        isLoading = true;
+
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var segments = uri.Segments;
 
-        for (int i = 0; i < segments.Length; i++)
+        for (int i = 0; i < segments.Length - 1; i++)
         {
-            if (segments[i].Trim('/') == "projects" && i + 1 < segments.Length)
+            if (segments[i].Trim('/') == "projects" &&
+                int.TryParse(segments[i + 1].Trim('/'), out int id))
             {
-                if (int.TryParse(segments[i + 1].Trim('/'), out int id))
-                {
-                    ProjectId = id;
-                    project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, 1);
-                    break;
-                }
+                ProjectId = id;
+                break;
             }
         }
+
+        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, 1);
+
+        if (project != null)
+        {
+            selectedGenre = project.Genre;
+        }
+
+        isLoading = false;
+    }
+
+    private void StartEditingGenre()
+    {
+        selectedGenre = project!.Genre;
+        isEditingGenre = true;
+    }
+
+    private async Task SaveGenre()
+    {
+        if (project == null) return;
+
+        isSavingGenre = true;
+
+        try
+        {
+            bool result = await ProjectService.UpdateGenreAsync(ProjectId, 1, selectedGenre);
+
+            if (result)
+            {
+                project.Genre = selectedGenre;
+                isEditingGenre = false;
+            }
+        }
+        finally
+        {
+            isSavingGenre = false;
+        }
+    }
+
+    private void CancelEditingGenre()
+    {
+        selectedGenre = project!.Genre;
+        isEditingGenre = false;
     }
 
     private string GetGenreDisplayName(Genre genre)
@@ -88,17 +174,13 @@
         {
             Genre.Drama => "Драма",
             Genre.Comedy => "Комедия",
-            Genre.Action => "Боевик",
             Genre.Thriller => "Триллер",
-            Genre.SciFi => "Фантастика",
             Genre.Horror => "Ужасы",
-            Genre.Romance => "Мелодрама",
             Genre.Fantasy => "Фэнтези",
-            Genre.Mystery => "Детектив",
-            Genre.Crime => "Криминал",
-            Genre.Animation => "Анимация",
-            Genre.Documentary => "Документальный",
-            Genre.Other => "Другое",
+            Genre.Action => "Боевик",
+            Genre.Romance => "Мелодрама",
+            
+            Genre.SciFi => "Фантастика",
             _ => genre.ToString()
         };
     }

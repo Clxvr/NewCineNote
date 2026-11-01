@@ -88,5 +88,49 @@ namespace CineNote.Services
 
             return await context.SaveChangesAsync() > 0;
         }
+        public async Task<bool> UpdateGenreAsync(int projectId, int userId, Genre genre)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var project = await context.MovieProjects.FirstOrDefaultAsync(
+                p => p.Id == projectId && p.UserId == userId
+            );
+
+            if (project == null)
+            {
+                return false;
+            }
+
+            project.Genre = genre;
+
+            await context.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<bool> UpdateLoglineAsync(int projectId, int userId, string logline)
+        {
+            if (logline.Length > 250)
+            {
+                return false;
+            }
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var project = await context.MovieProjects.FirstOrDefaultAsync(
+                p => p.Id == projectId && p.UserId == userId
+            );
+
+            if (project == null)
+            {
+                return false;
+            }
+
+            project.Logline = logline;
+
+            await context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }
+

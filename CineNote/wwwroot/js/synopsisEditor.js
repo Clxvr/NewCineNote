@@ -1,14 +1,48 @@
-﻿export function printContent(element) {
-    const content = element.__quill.root.innerHTML;
-
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-
-    if (!printWindow) {
-        alert('Разрешите всплывающие окна для печати.');
+﻿
+export function initializeEditor(element, initialContent) {
+    if (element.__quill) {
         return;
     }
 
-    printWindow.document.open();
+    const quill = new Quill(element, {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ align: [] }],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    element.__quill = quill;
+    quill.root.innerHTML = initialContent || '';
+}
+
+export function getContent(element) {
+    if (!element.__quill) {
+        return '';
+    }
+
+    return element.__quill.root.innerHTML;
+}
+
+export function printContent(element) {
+    if (!element || !element.__quill) {
+        alert('Редактор не загружен.');
+        return;
+    }
+
+    const content = element.__quill.root.innerHTML;
+    const printWindow = window.open('', '_blank');
+
+    if (!printWindow) {
+        alert('Разрешите всплывающие окна для сайта.');
+        return;
+    }
 
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -16,7 +50,6 @@
         <head>
             <meta charset="UTF-8">
             <title>Синопсис</title>
-
             <style>
                 @page {
                     size: A4;
@@ -41,21 +74,11 @@
                     text-indent: 1.25cm;
                     margin: 0;
                 }
-
-                h1, h2, h3 {
-                    text-align: left;
-                    text-indent: 0;
-                }
-
-                ol, ul {
-                    padding-left: 1cm;
-                }
             </style>
         </head>
-
         <body>
             <h2>Синопсис</h2>
-            <main>${content}</main>
+            ${content}
         </body>
         </html>
     `);

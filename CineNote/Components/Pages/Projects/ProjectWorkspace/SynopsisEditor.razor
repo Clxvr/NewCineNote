@@ -4,8 +4,6 @@
 
 <div class="synopsis-editor">
 
-    <h2 class="synopsis-print-title">Синопсис</h2>
-
     <div class="synopsis-editor-area">
         <div @ref="editorElement"
              class="synopsis-quill"
@@ -22,18 +20,13 @@
         <div class="d-flex gap-2">
 
             <button class="btn btn-outline-secondary rounded-3 px-3"
-                    @onclick="PrintContent"
-                    disabled="@(jsModule == null || isSaving)">
-                <icon name="printer" />
+                    @onclick="PrintContent">
                 Печать
             </button>
 
             <button class="btn btn-primary px-4 rounded-3"
-                    @onclick="SaveContent"
-                    disabled="@isSaving">
-
+                    @onclick="SaveContent">
                 @(isSaving ? "Сохранение..." : "Сохранить")
-
             </button>
 
         </div>
@@ -61,12 +54,15 @@
             try
             {
                 jsModule = await JS.InvokeAsync<IJSObjectReference>(
-                    "import", "./js/synopsisEditor.js");
+                    "import", "/js/synopsisEditor.js?v=2");
 
                 await jsModule.InvokeVoidAsync(
                     "initializeEditor",
                     editorElement,
                     InitialContent);
+
+                saveMessage = string.Empty;
+                StateHasChanged();
             }
             catch (Exception ex)
             {
@@ -109,9 +105,20 @@
     private async Task PrintContent()
     {
         if (jsModule == null)
+        {
+            saveMessage = "Редактор не загружен.";
             return;
+        }
 
-        await jsModule.InvokeVoidAsync("printContent", editorElement);
+        try
+        {
+            await jsModule.InvokeVoidAsync(
+                "printContent", editorElement);
+        }
+        catch (Exception ex)
+        {
+            saveMessage = "Ошибка печати: " + ex.Message;
+        }
     }
 
     public async ValueTask DisposeAsync()

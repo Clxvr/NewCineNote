@@ -8,7 +8,7 @@
 @if (isLoading)
 {
     <div class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
+        <div class="spinner-border workspace-spinner" role="status"></div>
     </div>
 }
 else if (project == null)
@@ -23,19 +23,71 @@ else
 
         <!-- Логлайн -->
         <div class="p-4 rounded-4 bg-light border-0 shadow-sm">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="fw-bold text-dark m-0">Логлайн</h5>
 
-                <span class="badge bg-primary bg-opacity-10 text-primary small px-3 py-2 rounded-pill">
-                    Главная идея
-                </span>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold text-dark m-0">Логлайн</h5>
+                    <span class="text-muted small">Главная идея фильма</span>
+                </div>
+
+                @if (!isEditingLogline)
+                {
+                    <button class="btn btn-sm btn-outline-dark rounded-3"
+                            @onclick="StartEditingLogline">
+                        <i class="bi bi-pencil me-1"></i>
+                        Изменить
+                    </button>
+                }
             </div>
 
-            <p class="text-dark fs-5 mb-0 lh-base" style="white-space: pre-wrap;">
-                @(string.IsNullOrEmpty(project.Logline)
-                    ? "Логлайн еще не добавлен..."
-                    : project.Logline)
-            </p>
+            @if (isEditingLogline)
+            {
+                <textarea class="form-control logline-textarea"
+                          @bind="editedLogline"
+                          maxlength="250"
+                          rows="3"
+                          placeholder="Кратко опишите основную идею фильма...">
+                        </textarea>
+
+                <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+
+                    <span class="text-muted small">
+                        @editedLogline.Length / 250 символов
+                    </span>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn workspace-button"
+                                @onclick="SaveLogline"
+                                disabled="@isSavingLogline">
+                            @(isSavingLogline ? "Сохранение..." : "Сохранить")
+                        </button>
+
+                        <button class="btn workspace-cancel-button"
+                                @onclick="CancelEditingLogline"
+                                disabled="@isSavingLogline">
+                            Отмена
+                        </button>
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <p class="text-dark fs-5 mb-0 lh-base"
+                   style="white-space: pre-wrap;">
+                    @(string.IsNullOrEmpty(project.Logline)
+                        ? "Логлайн ещё не добавлен..."
+                        : project.Logline)
+                </p>
+            }
+
+            @if (!string.IsNullOrEmpty(loglineMessage))
+            {
+                <p class="small text-muted mt-2 mb-0">
+                    @loglineMessage
+                </p>
+            }
+
         </div>
 
         <!-- Синопсис -->
@@ -45,7 +97,7 @@ else
                 <h5 class="fw-bold text-dark mb-1">Синопсис</h5>
 
                 <p class="text-muted small mb-0">
-                    Развернутое описание истории, событий и персонажей вашего фильма.
+                    Развёрнутое описание истории, событий и персонажей вашего фильма.
                 </p>
             </div>
 
@@ -67,6 +119,12 @@ else
 
     private string currentSynopsis = string.Empty;
 
+    private bool isEditingLogline;
+    private bool isSavingLogline;
+
+    private string editedLogline = string.Empty;
+    private string loglineMessage = string.Empty;
+
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
@@ -81,6 +139,69 @@ else
         isLoading = false;
     }
 
+    // Начало редактирования логлайна
+    private void StartEditingLogline()
+    {
+        editedLogline = project?.Logline ?? string.Empty;
+        loglineMessage = string.Empty;
+        isEditingLogline = true;
+    }
+
+    // Сохранение логлайна
+    private async Task SaveLogline()
+    {
+        if (project == null)
+            return;
+
+        string logline = editedLogline.Trim();
+
+        if (logline.Length > 250)
+        {
+            loglineMessage = "Логлайн не должен превышать 250 символов.";
+            return;
+        }
+
+        isSavingLogline = true;
+        loglineMessage = string.Empty;
+
+        try
+        {
+            bool result = await ProjectService.UpdateLoglineAsync(
+                ProjectId,
+                1,
+                logline
+            );
+
+            if (result)
+            {
+                project.Logline = logline;
+                isEditingLogline = false;
+                loglineMessage = "Логлайн сохранён.";
+            }
+            else
+            {
+                loglineMessage = "Не удалось сохранить логлайн.";
+            }
+        }
+        catch
+        {
+            loglineMessage = "Ошибка при сохранении логлайна.";
+        }
+        finally
+        {
+            isSavingLogline = false;
+        }
+    }
+
+    // Отмена редактирования
+    private void CancelEditingLogline()
+    {
+        editedLogline = project?.Logline ?? string.Empty;
+        isEditingLogline = false;
+        loglineMessage = string.Empty;
+    }
+
+    // Сохранение синопсиса
     private async Task HandleSaveSynopsis(string updatedContent)
     {
         bool result = await ProjectService.UpdateSynopsisAsync(
