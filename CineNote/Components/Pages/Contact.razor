@@ -1,0 +1,153 @@
+@page "/contact"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using CineNote.Services
+@inject AuthService AuthService
+
+<PageTitle>Обратная связь — CineNote</PageTitle>
+
+<div class="container py-4" style="max-width: 750px;">
+    <!-- Заголовок -->
+    <div class="text-center mb-4">
+        <span class="display-4 d-block mb-2">📬</span>
+        <h1 class="fw-bold text-dark mb-2">Обратная связь</h1>
+        <p class="text-muted lead fs-6">
+            Есть предложения, идеи или нашли ошибку? Напишите нам, и мы обязательно ответим.
+        </p>
+    </div>
+
+    <!-- Основная форма -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        @if (isSubmitted)
+        {
+            <div class="text-center py-4">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success display-3"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Сообщение успешно отправлено!</h4>
+                <p class="text-muted mb-4">
+                    Спасибо за ваш отзыв! Мы ознакомимся с ним в ближайшее время.
+                </p>
+                <button class="btn btn-outline-dark rounded-pill px-4" @onclick="ResetForm">
+                    Отправить ещё одно сообщение
+                </button>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@contactModel" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">Ваше имя:</label>
+                    <InputText class="form-control rounded-3" @bind-Value="contactModel.Name" placeholder="Введите имя" />
+                    <div class="text-danger small mt-1">
+                        <ValidationMessage For="@(() => contactModel.Name)" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">Email для ответа:</label>
+                    <InputText class="form-control rounded-3" @bind-Value="contactModel.Email" placeholder="example@mail.com" />
+                    <div class="text-danger small mt-1">
+                        <ValidationMessage For="@(() => contactModel.Email)" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-dark">Тема обращения:</label>
+                    <InputSelect class="form-select rounded-3" @bind-Value="contactModel.Subject">
+                        <option value="Вопрос по работе CineNote">Вопрос по работе CineNote</option>
+                        <option value="Предложение по функционалу">Предложение по функционалу</option>
+                        <option value="Сообщение об ошибке">Сообщение об ошибке</option>
+                        <option value="Другое">Другое</option>
+                    </InputSelect>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold text-dark">Ваше сообщение:</label>
+                    <InputTextArea class="form-control rounded-3" rows="5" @bind-Value="contactModel.Message" 
+                                   placeholder="Опишите подробно ваш вопрос или идею..." />
+                    <div class="text-danger small mt-1">
+                        <ValidationMessage For="@(() => contactModel.Message)" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 py-2 fw-semibold rounded-3 shadow-sm text-dark"
+                        disabled="@isSending">
+                    @(isSending ? "Отправка..." : "Отправить сообщение")
+                </button>
+            </EditForm>
+        }
+    </div>
+
+    <!-- Контакты разработчика внизу -->
+    <div class="row g-3 mt-4 text-center">
+        <div class="col-sm-6">
+            <div class="p-3 bg-white rounded-3 shadow-sm border-0">
+                <i class="bi bi-envelope-at text-warning fs-4 d-block mb-1"></i>
+                <span class="small text-muted d-block">Почта поддержки:</span>
+                <strong class="text-dark">support@cinenote.com</strong>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="p-3 bg-white rounded-3 shadow-sm border-0">
+                <i class="bi bi-clock-history text-warning fs-4 d-block mb-1"></i>
+                <span class="small text-muted d-block">Время ответа:</span>
+                <strong class="text-dark">В течение 24 часов</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContactFormModel contactModel = new();
+    private bool isSubmitted = false;
+    private bool isSending = false;
+
+    protected override void OnInitialized()
+    {
+        if (AuthService.CurrentUser != null)
+        {
+            contactModel.Name = AuthService.CurrentUser.Name;
+            contactModel.Email = AuthService.CurrentUser.Email;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSending = true;
+        // Имитируем быструю отправку
+        await Task.Delay(600);
+        isSending = false;
+        isSubmitted = true;
+    }
+
+    private void ResetForm()
+    {
+        contactModel = new();
+        if (AuthService.CurrentUser != null)
+        {
+            contactModel.Name = AuthService.CurrentUser.Name;
+            contactModel.Email = AuthService.CurrentUser.Email;
+        }
+        isSubmitted = false;
+    }
+
+    public class ContactFormModel
+    {
+        [Required(ErrorMessage = "Пожалуйста, укажите ваше имя.")]
+        [StringLength(50, ErrorMessage = "Имя слишком длинное.")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Пожалуйста, укажите email.")]
+        [EmailAddress(ErrorMessage = "Введите корректный адрес электронной почты.")]
+        public string Email { get; set; } = string.Empty;
+
+        public string Subject { get; set; } = "Вопрос по работе CineNote";
+
+        [Required(ErrorMessage = "Текст сообщения не может быть пустым.")]
+        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Сообщение должно содержать от 10 до 2000 символов.")]
+        public string Message { get; set; } = string.Empty;
+    }
+}

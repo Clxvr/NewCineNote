@@ -1,0 +1,85 @@
+@page "/about"
+@rendermode InteractiveServer
+
+<PageTitle>О проекте — CineNote</PageTitle>
+
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Заголовок -->
+    <div class="text-center mb-5">
+        <span class="display-4 d-block mb-2">🎬</span>
+        <h1 class="fw-bold text-dark mb-2">О платформе CineNote</h1>
+        <p class="text-muted lead fs-6">
+            Цифровое пространство для сценаристов, режиссеров и киногрупп на этапе предпродакшена.
+        </p>
+    </div>
+
+    <!-- Карточка с миссией -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white">
+        <h3 class="fw-bold text-dark mb-3">
+            <i class="bi bi-bullseye text-warning me-2"></i>Наша миссия
+        </h3>
+        <p class="text-muted lh-lg mb-0" style="font-size: 1.05rem;">
+            <strong>CineNote</strong> создан для того, чтобы избавить авторов от рутины и разрозненных заметок. 
+            Мы объединяем ключевые элементы истории — <strong>глобальный замысел (логлайн и синопсис)</strong>, 
+            <strong>базу персонажей</strong> и <strong>хронологический таймлайн сцен</strong> — в единую систему с автоматическим 
+            формированием профессиональных киностандартов (Slugline, тип площадки, время суток).
+        </p>
+    </div>
+
+    <!-- Ключевые возможности (Сетка) -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="fs-2 mb-2">📝</div>
+                <h5 class="fw-bold text-dark">Концепция фильма</h5>
+                <p class="text-muted small mb-0">
+                    Управление логлайном и визуальный WYSIWYG-редактор синопсиса для детальной проработки сюжета.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="fs-2 mb-2">👥</div>
+                <h5 class="fw-bold text-dark">Каталог героев</h5>
+                <p class="text-muted small mb-0">
+                    Учет персонажей по драматургическим ролям: протагонисты, антагонисты, наставники и их описания.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 bg-white">
+                <div class="fs-2 mb-2">🎞️</div>
+                <h5 class="fw-bold text-dark">Сцены и Slugline</h5>
+                <p class="text-muted small mb-0">
+                    Автоматическая нумерация сцен, генерация заголовков по киностандарту (ИНТ/НАТ, время суток) и привязка актеров.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация об авторе и учебном проекте -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-warning bg-opacity-25 d-flex align-items-center justify-content-center" 
+                 style="width: 55px; height: 55px; min-width: 55px;">
+                <i class="bi bi-person-badge fs-3 text-dark"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold text-dark mb-1">Разработка и авторство</h6>
+                <p class="text-muted small mb-0">
+                    Проект разработан в рамках практической работы учащимся 3-го курса 
+                    <strong>Мурашко Максимом</strong> (группа ПО-2408).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Призыв к действию -->
+    <div class="text-center mt-4">
+        <a href="/projects" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm rounded-pill">
+            <i class="bi bi-journal-bookmark me-2"></i>Перейти к моим проектам
+        </a>
+    </div>
+</div>
