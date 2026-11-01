@@ -1,4 +1,4 @@
-п»ї@page "/"
+@page "/"
 @using CineNote.Services
 @inject AuthService AuthService
 @implements IDisposable
@@ -9,15 +9,15 @@
      
         <div class="card shadow-sm border-0 rounded-4 p-5 bg-white">
             <div class="mb-3">
-                <span class="display-3">рџЋ¬</span>
+                <img src="/images/icons/logo.png" alt="CineNote" width="110" height="110" style="object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12));" />
             </div>
-            <h1 class="fw-bold mb-3 text-dark">Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ CineNote</h1>
+            <h1 class="fw-bold mb-3 text-dark">Добро пожаловать в CineNote</h1>
             <p class="text-muted mb-4 lead fs-6">
-                РџСЂРѕС„РµСЃСЃРёРѕРЅР°Р»СЊРЅС‹Р№ РёРЅСЃС‚СЂСѓРјРµРЅС‚ РґР»СЏ СЃС†РµРЅР°СЂРёСЃС‚РѕРІ. РЎРѕР·РґР°РІР°Р№С‚Рµ РїСЂРѕРµРєС‚С‹, РїРёС€РёС‚Рµ Р»РѕРіР»Р°Р№РЅС‹ Рё СѓРїСЂР°РІР»СЏР№С‚Рµ СЃРІРѕРёРјРё РёСЃС‚РѕСЂРёСЏРјРё РІ СѓРґРѕР±РЅРѕРј СЃС†РµРЅР°СЂРЅРѕРј С„РѕСЂРјР°С‚Рµ.
+                Профессиональный инструмент для сценаристов. Создавайте проекты, пишите логлайны и управляйте своими историями в удобном сценарном формате.
             </p>
             <div class="d-flex justify-content-center gap-3">
-                <a href="/login" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">Р’РѕР№С‚Рё РІ Р°РєРєР°СѓРЅС‚</a>
-                <a href="/register" class="btn btn-outline-dark px-4 py-2 fw-semibold">Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ</a>
+                <a href="/login" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">Войти в аккаунт</a>
+                <a href="/register" class="btn btn-outline-dark px-4 py-2 fw-semibold">Зарегистрироваться</a>
             </div>
         </div>
     }
@@ -26,18 +26,18 @@
     
         <div class="card shadow-sm border-0 rounded-4 p-5 bg-white">
             <div class="mb-3">
-                <span class="display-3">вњЁ</span>
+                <img src="/images/icons/logo.png" alt="CineNote" width="110" height="110" style="object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12));" />
             </div>
-            <h1 class="fw-bold mb-2 text-dark">РЎ РІРѕР·РІСЂР°С‰РµРЅРёРµРј, @AuthService.CurrentUser.Name!</h1>
+            <h1 class="fw-bold mb-2 text-dark">С возвращением, @AuthService.CurrentUser.Name!</h1>
             <p class="text-muted mb-4">
-                Р“РѕС‚РѕРІС‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ СЂР°Р±РѕС‚Сѓ РЅР°Рґ РёСЃС‚РѕСЂРёСЏРјРё РёР»Рё С…РѕС‚РёС‚Рµ РЅР°С‡Р°С‚СЊ РЅРѕРІС‹Р№ СЃС†РµРЅР°СЂРЅС‹Р№ РїСЂРѕРµРєС‚?
+                Готовы продолжить работу над историями или хотите начать новый сценарный проект?
             </p>
             <div class="d-flex justify-content-center flex-wrap gap-3">
                 <a href="/projects" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
-                    <i class="bi bi-journal-bookmark me-2"></i> РњРѕРё РїСЂРѕРµРєС‚С‹
+                    <i class="bi bi-journal-bookmark me-2"></i> Мои проекты
                 </a>
                 <a href="/projects/create" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">
-                    <i class="bi bi-plus-lg me-2"></i> РЎРѕР·РґР°С‚СЊ РїСЂРѕРµРєС‚
+                    <i class="bi bi-plus-lg me-2"></i> Создать проект
                 </a>
             </div>
         </div>
