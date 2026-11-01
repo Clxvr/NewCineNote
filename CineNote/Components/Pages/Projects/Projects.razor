@@ -22,28 +22,32 @@
                 <h2 class="fw-bold mb-1" style="color: #1F2937;">Мои проекты</h2>
                 <p class="text-muted mb-0">Управляйте своими фильмами, сериалами и сценарными набросками</p>
             </div>
-            <a href="/projects/create" class="btn btn-dark btn-lg shadow-sm px-4">
-                <i class="bi bi-plus-lg me-2"></i>+ Новый проект
+            <a href="/projects/create" class="btn btn-warning btn-lg shadow-sm px-4 fw-semibold text-dark">
+                <i class="bi bi-plus-lg me-2"></i>Новый проект
             </a>
         </div>
 
         @if (userProjects == null)
         {
             <div class="text-center py-5">
-                <div class="spinner-border text-dark" role="status"></div>
+                <div class="spinner-border text-warning" role="status"></div>
                 <p class="text-muted mt-2">Загрузка ваших проектов...</p>
             </div>
         }
         else if (!userProjects.Any())
         {
-            <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-light">
-                <div class="card-body py-5">
+            <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-white p-4">
+                <div class="card-body py-4">
                     <div class="mb-3">
-                        <i class="bi bi-film text-dark display-4"></i>
+                        <img src="/images/icons/logo.png" alt="" width="95" height="95" style="object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.1));" />
                     </div>
-                    <h4 class="fw-bold text-dark">У вас пока нет проектов</h4>
-                    <p class="text-muted mb-4">Создайте свой первый кинопроект или сценарий с помощью кнопки выше!</p>
-                    <a href="/projects/create" class="btn btn-dark px-4">Создать первый проект</a>
+                    <h4 class="fw-bold text-dark mb-2">У вас пока нет проектов</h4>
+                    <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">
+                        Создайте свой первый кинопроект, распишите логлайн и структурируйте историю по сценам.
+                    </p>
+                    <a href="/projects/create" class="btn btn-warning px-4 py-2 fw-semibold text-dark shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Создать первый проект
+                    </a>
                 </div>
             </div>
         }
@@ -130,10 +134,16 @@
     private async Task DeleteProject(int id)
     {
         if (AuthService.CurrentUser == null) return;
+
         bool confirmed = await JS.InvokeAsync<bool>("confirm", "Удалить проект? Это действие нельзя отменить.");
         if (!confirmed) return;
+
         bool success = await ProjectService.DeleteProjectAsync(id, AuthService.CurrentUser.Id);
-        if (success) await LoadProjects();
+
+        if (success)
+        {
+            await LoadProjects();
+        }
     }
 
     private void OnDragStart(MovieProject project)
@@ -164,8 +174,10 @@
             draggedProject = null;
             return;
         }
+
         var orderedIds = userProjects!.Select(p => p.Id).ToList();
         await ProjectService.UpdateProjectsOrderAsync(orderedIds, AuthService.CurrentUser.Id);
+
         draggedProject = null;
     }
 
@@ -194,11 +206,5 @@
             Genre.Other => "Другое",
             _ => genre.ToString()
         };
-    }
-
-    private async Task Logout()
-    {
-        await AuthService.Logout();
-        Navigation.NavigateTo("/login");
     }
 }

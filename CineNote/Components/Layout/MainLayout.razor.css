@@ -1,72 +1,56 @@
-
-::deep body {
-    background-color: #fdfaf3 !important;
-    color: #2b2b2b;
-
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-}
-
-
-.top-navbar {
-    background: linear-gradient(135deg, #f7cb53 0%, #f1be36 100%) !important;
-    border-bottom: 2px solid #e0b034;
+﻿.top-navbar {
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     padding-top: 10px;
     padding-bottom: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
 }
-
 
 .navbar-brand {
-    color: #1a1a1a !important;
+    color: #111827 !important;
     font-size: 1.35rem;
     font-weight: 700;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.03em;
 }
-
-.brand-icon {
-    font-size: 1.4rem;
-}
-
 
 ::deep .navbar-nav .nav-link,
 .navbar-nav .nav-link {
-    color: #2c2c2c !important;
+    color: #4B5563 !important;
     text-decoration: none !important;
     font-size: 0.95rem;
     font-weight: 500;
-    padding: 8px 18px !important;
+    padding: 8px 16px !important;
     border-radius: 10px;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
 }
 
+::deep .navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:hover {
+    background-color: #FEF3C7 !important;
+    color: #92400E !important;
+    transform: translateY(-1px);
+}
 
-    ::deep .navbar-nav .nav-link:hover,
-    .navbar-nav .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.45) !important;
-        color: #000000 !important;
-        transform: translateY(-1px);
-    }
-
- 
-    ::deep .navbar-nav .nav-link.active,
-    .navbar-nav .nav-link.active {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    }
-
+::deep .navbar-nav .nav-link.active,
+.navbar-nav .nav-link.active {
+    background-color: #F59E0B !important;
+    color: #111827 !important;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25) !important;
+}
 
 .main-content {
-    min-height: calc(100vh - 76px);
+    min-height: calc(100vh - 130px);
 }
+
 .app-footer {
-    background-color: rgba(244, 196, 67, 0.1);
-    border-color: rgba(224, 176, 52, 0.2) !important;
+    background-color: #FFFFFF;
+    border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
     font-size: 0.85rem;
 }

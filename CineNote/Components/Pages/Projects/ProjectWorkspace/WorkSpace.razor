@@ -22,12 +22,16 @@ else
 {
     <div class="d-flex flex-column gap-4">
 
-        <div class="p-4 rounded-4 bg-light border-0 shadow-sm">
+        <div class="p-4 rounded-4 bg-light border-0 shadow-sm position-relative overflow-hidden">
+            <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #F59E0B;"></div>
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h5 class="fw-bold text-dark m-0">Логлайн</h5>
-                    <span class="text-muted small">Главная идея фильма</span>
+                <div class="d-flex align-items-center gap-2">
+                    <img src="/images/icons/icon_clapper_pen.png" alt="" width="28" height="28" style="object-fit: contain;" />
+                    <div>
+                        <h5 class="fw-bold text-dark m-0">Логлайн</h5>
+                        <span class="text-muted small">Главная идея фильма</span>
+                    </div>
                 </div>
 
                 @if (!isEditingLogline)
@@ -56,13 +60,13 @@ else
                     </span>
 
                     <div class="d-flex gap-2">
-                        <button class="btn workspace-button"
+                        <button class="btn btn-warning btn-sm px-3 fw-semibold text-dark"
                                 @onclick="SaveLogline"
                                 disabled="@isSavingLogline">
                             @(isSavingLogline ? "Сохранение..." : "Сохранить")
                         </button>
 
-                        <button class="btn workspace-cancel-button"
+                        <button class="btn btn-light btn-sm px-3"
                                 @onclick="CancelEditingLogline"
                                 disabled="@isSavingLogline">
                             Отмена
@@ -90,14 +94,17 @@ else
 
         </div>
 
-        <div class="synopsis-section p-4 rounded-4">
+        <div class="synopsis-section p-4 rounded-4 position-relative overflow-hidden">
+            <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #F59E0B;"></div>
 
-            <div class="mb-3">
-                <h5 class="fw-bold text-dark mb-1">Синопсис</h5>
-
-                <p class="text-muted small mb-0">
-                    Развёрнутое описание истории, событий и персонажей вашего фильма.
-                </p>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <img src="/images/icons/synopsis.png" alt="" width="32" height="32" style="object-fit: contain;" />
+                <div>
+                    <h5 class="fw-bold text-dark m-0">Синопсис</h5>
+                    <p class="text-muted small mb-0">
+                        Развёрнутое описание истории, событий и персонажей вашего фильма.
+                    </p>
+                </div>
             </div>
 
             <SynopsisEditor @key="ProjectId"

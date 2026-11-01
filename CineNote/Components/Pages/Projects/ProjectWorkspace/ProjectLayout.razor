@@ -18,7 +18,7 @@
     {
         <div class="text-center py-5">
             <p class="text-muted">Проект не найден.</p>
-            <a href="/projects">Вернуться к проектам</a>
+            <a href="/projects" class="btn btn-dark mt-2">Вернуться к проектам</a>
         </div>
     }
     else
@@ -55,6 +55,9 @@
                 </div>
             </div>
 
+            <a href="/projects" class="btn btn-outline-secondary btn-sm px-3 rounded-pill d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i> Все проекты
+            </a>
         </div>
 
         <div class="row g-4">
@@ -66,23 +69,23 @@
 
                     <div class="d-flex flex-column gap-2">
                         <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}")" Match="NavLinkMatch.All">
-                            <i class="bi bi-file-earmark-text"></i>
-                            Обзор проекта
+                            <img src="/images/icons/synopsis.png" alt="" />
+                            <span>Обзор проекта</span>
                         </NavLink>
 
                         <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}/scenes")">
-                            <i class="bi bi-film"></i>
-                            Сцены
+                            <img src="/images/icons/icon_timeline.png" alt="" />
+                            <span>Сцены</span>
                         </NavLink>
 
                         <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}/characters")">
-                            <i class="bi bi-people"></i>
-                            Персонажи
+                            <img src="/images/icons/characters.png" alt="" />
+                            <span>Персонажи</span>
                         </NavLink>
 
                         <NavLink class="workspace-nav-link" href="@($"/projects/{ProjectId}/share")">
-                            <i class="bi bi-share"></i>
-                            Доступ к проекту
+                            <img src="/images/icons/icon_feedback_ticket.png" alt="" />
+                            <span>Доступ</span>
                         </NavLink>
                     </div>
                 </div>

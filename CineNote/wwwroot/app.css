@@ -1,39 +1,88 @@
+п»ї@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+:root {
+    --primary-amber: #F59E0B;
+    --primary-amber-hover: #D97706;
+    --primary-amber-light: #FEF3C7;
+    --dark-graphite: #1F2937;
+    --dark-graphite-hover: #111827;
+    --bg-cream: #FDFAF3;
+    --border-subtle: #E5E7EB;
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.09);
+    --radius-default: 12px;
+}
 
 html, body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #fdfaf3;
-    color: #333;
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-cream);
+    color: #2D3748;
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 a {
     text-decoration: none;
+    color: inherit;
 }
 
 button {
     font-family: inherit;
 }
 
-/* Основные контейнеры */
-
 .container {
-    max-width: 1200px;
+    max-width: 1280px;
 }
 
-/* Синопсис */
+.btn-primary, .btn-warning {
+    background-color: var(--primary-amber) !important;
+    border-color: var(--primary-amber) !important;
+    color: #1A1A1A !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover, .btn-warning:hover {
+    background-color: var(--primary-amber-hover) !important;
+    border-color: var(--primary-amber-hover) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.btn-dark {
+    background-color: var(--dark-graphite) !important;
+    border-color: var(--dark-graphite) !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-dark:hover {
+    background-color: var(--dark-graphite-hover) !important;
+    border-color: var(--dark-graphite-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(31, 41, 55, 0.25);
+}
+
+.card {
+    border-radius: var(--radius-default);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
 
 .synopsis-section {
-    background-color: #fff;
-    border: 1px solid #eee;
+    background-color: #FFFFFF;
+    border: 1px solid #ECE7DD;
     border-radius: 16px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-soft);
 }
 
 .synopsis-editor {
@@ -41,55 +90,43 @@ button {
 }
 
 .synopsis-editor-area {
-    background-color: #fff;
-    border-radius: 8px;
+    background-color: #FFFFFF;
+    border-radius: 10px;
     overflow: hidden;
 }
 
-.synopsis-quill {
-    background-color: #fff;
+.synopsis-quill .ql-toolbar {
+    border: 1px solid #E5E7EB;
+    border-radius: 10px 10px 0 0;
+    background-color: #FAFAFA;
 }
 
-    .synopsis-quill .ql-toolbar {
-        border: 1px solid #ddd;
-        border-radius: 8px 8px 0 0;
-        background-color: #fafafa;
-    }
-
-    .synopsis-quill .ql-container {
-        border: 1px solid #ddd;
-        border-top: none;
-        border-radius: 0 0 8px 8px;
-        font-family: 'Montserrat', sans-serif;
-        font-size: 15px;
-    }
-
-    .synopsis-quill .ql-editor {
-        min-height: 350px;
-        line-height: 1.7;
-        padding: 20px;
-    }
-
-        .synopsis-quill .ql-editor.ql-blank::before {
-            color: #999;
-            font-style: normal;
-        }
-
-.synopsis-editor button {
-    font-family: inherit;
+.synopsis-quill .ql-container {
+    border: 1px solid #E5E7EB;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
 }
 
-/* Кнопки редактора */
+.synopsis-quill .ql-editor {
+    min-height: 380px;
+    line-height: 1.75;
+    padding: 22px;
+}
+
+.synopsis-quill .ql-editor.ql-blank::before {
+    color: #9CA3AF;
+    font-style: normal;
+}
 
 .synopsis-editor .btn {
     transition: all 0.2s ease;
 }
 
-    .synopsis-editor .btn:hover {
-        transform: translateY(-1px);
-    }
-
-/* Адаптация под телефон */
+.synopsis-editor .btn:hover {
+    transform: translateY(-1px);
+}
 
 @media (max-width: 768px) {
     .synopsis-section {
@@ -98,7 +135,7 @@ button {
 
     .synopsis-quill .ql-editor {
         min-height: 250px;
-        padding: 12px;
+        padding: 14px;
     }
 
     .synopsis-quill .ql-toolbar {

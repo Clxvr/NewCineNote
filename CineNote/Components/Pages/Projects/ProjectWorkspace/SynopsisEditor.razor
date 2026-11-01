@@ -1,4 +1,4 @@
-﻿@using Microsoft.JSInterop
+@using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
@@ -7,7 +7,7 @@
     <div class="synopsis-editor-area">
         <div @ref="editorElement"
              class="synopsis-quill"
-             style="min-height: 350px;">
+             style="min-height: 380px;">
         </div>
     </div>
 
@@ -21,12 +21,14 @@
 
             <button class="btn btn-outline-secondary rounded-3 px-3"
                     @onclick="PrintContent">
-                Печать
+                <i class="bi bi-printer me-1"></i> Печать
             </button>
 
-            <button class="btn btn-primary px-4 rounded-3"
-                    @onclick="SaveContent">
-                @(isSaving ? "Сохранение..." : "Сохранить")
+            <button class="btn btn-warning px-4 rounded-3 text-dark fw-bold"
+                    @onclick="SaveContent"
+                    disabled="@isSaving">
+                <i class="bi bi-check-lg me-1"></i>
+                @(isSaving ? "Сохранение..." : "Сохранить синопсис")
             </button>
 
         </div>
@@ -90,7 +92,7 @@
 
             await OnSave.InvokeAsync(content);
 
-            saveMessage = "Синопсис сохранён";
+            saveMessage = "Синопсис сохранён.";
         }
         catch (Exception ex)
         {
