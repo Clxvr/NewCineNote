@@ -1,9 +1,10 @@
-﻿@page "/projects"
+@page "/projects"
 @using CineNote.Models
 @using CineNote.Services
 @inject MovieProjectService ProjectService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="container mt-4 projects-container">
     @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
@@ -129,13 +130,10 @@
     private async Task DeleteProject(int id)
     {
         if (AuthService.CurrentUser == null) return;
-
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Удалить проект? Это действие нельзя отменить.");
+        if (!confirmed) return;
         bool success = await ProjectService.DeleteProjectAsync(id, AuthService.CurrentUser.Id);
-
-        if (success)
-        {
-            await LoadProjects();
-        }
+        if (success) await LoadProjects();
     }
 
     private void OnDragStart(MovieProject project)
@@ -159,8 +157,15 @@
         }
     }
 
-    private void OnDrop(MovieProject targetProject)
+    private async Task OnDrop(MovieProject targetProject)
     {
+        if (draggedProject == null || AuthService.CurrentUser == null)
+        {
+            draggedProject = null;
+            return;
+        }
+        var orderedIds = userProjects!.Select(p => p.Id).ToList();
+        await ProjectService.UpdateProjectsOrderAsync(orderedIds, AuthService.CurrentUser.Id);
         draggedProject = null;
     }
 

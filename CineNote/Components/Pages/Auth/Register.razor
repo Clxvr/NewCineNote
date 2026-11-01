@@ -1,4 +1,5 @@
-﻿@page "/register"
+@page "/register"
+@rendermode InteractiveServer
 @using CineNote.Models
 @using CineNote.Services
 @inject UserService UserService
@@ -123,7 +124,10 @@
             newUser.VerificationCode = code;
             newUser.IsEmailConfirmed = false;
 
-            newUser.Password = BCrypt.Net.BCrypt.HashPassword(newUser.Password);
+            var plainPassword = newUser.Password;
+            var hashed = BCrypt.Net.BCrypt.HashPassword(plainPassword);
+            newUser.Password = hashed;
+
             await UserService.AddUserAsync(newUser);
 
             string subject = "Код подтверждения регистрации CineNote";

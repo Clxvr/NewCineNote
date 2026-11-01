@@ -1,9 +1,10 @@
-﻿@using CineNote.Components.Layout
+@using CineNote.Components.Layout
 @layout MainLayout
 @inherits LayoutComponentBase
 @using CineNote.Models
 @using CineNote.Services
 @inject MovieProjectService ProjectService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 
 <div class="container-fluid workspace-container px-4 py-3">
@@ -54,7 +55,6 @@
                 </div>
             </div>
 
-         
         </div>
 
         <div class="row g-4">
@@ -112,19 +112,17 @@
         isLoading = true;
 
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-        var segments = uri.Segments;
-
+        var segments = uri.AbsolutePath.Trim('/').Split('/');
         for (int i = 0; i < segments.Length - 1; i++)
         {
-            if (segments[i].Trim('/') == "projects" &&
-                int.TryParse(segments[i + 1].Trim('/'), out int id))
+            if (segments[i] == "projects" && int.TryParse(segments[i + 1], out int id))
             {
                 ProjectId = id;
                 break;
             }
         }
 
-        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, 1);
+        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, AuthService.CurrentUser?.Id ?? 0);
 
         if (project != null)
         {
@@ -148,7 +146,7 @@
 
         try
         {
-            bool result = await ProjectService.UpdateGenreAsync(ProjectId, 1, selectedGenre);
+            bool result = await ProjectService.UpdateGenreAsync(ProjectId, AuthService.CurrentUser?.Id ?? 0, selectedGenre);
 
             if (result)
             {
@@ -179,7 +177,6 @@
             Genre.Fantasy => "Фэнтези",
             Genre.Action => "Боевик",
             Genre.Romance => "Мелодрама",
-            
             Genre.SciFi => "Фантастика",
             _ => genre.ToString()
         };

@@ -1,4 +1,4 @@
-﻿using CineNote.Models;
+using CineNote.Models;
 using Microsoft.JSInterop;
 using System.Text.Json;
 
@@ -24,40 +24,53 @@ namespace CineNote.Services
         {
             try
             {
-                var userJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "currentUser");
-                if (!string.IsNullOrEmpty(userJson))
+                var sessionJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "currentUser");
+                if (!string.IsNullOrEmpty(sessionJson))
                 {
-                    CurrentUser = JsonSerializer.Deserialize<User>(userJson);
-                    NotifyStateChanged();
+                    var session = JsonSerializer.Deserialize<UserSession>(sessionJson);
+                    if (session != null)
+                    {
+                        CurrentUser = new User
+                        {
+                            Id = session.Id,
+                            Name = session.Name,
+                            Email = session.Email,
+                            GlobalRole = session.GlobalRole,
+                            IsEmailConfirmed = session.IsEmailConfirmed
+                        };
+                        NotifyStateChanged();
+                    }
                 }
             }
             catch
             {
-
+                CurrentUser = null;
             }
         }
-
 
         public async Task<bool> LoginAsync(string email, string password)
         {
             var user = await _userService.GetUserByEmailAsync(email);
 
-            if (user != null)
-            {
-                if (password == "123456" || BCrypt.Net.BCrypt.Verify(password, user.Password))
-                {
-                    await Login(user);
-                    return true;
-                }
-            }
+            if (user == null)
+                return false;
 
-            return false;
+            if (!user.IsEmailConfirmed)
+                return false;
+
+            if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+                return false;
+
+            await Login(user);
+            return true;
         }
+
         public async Task Login(User user)
         {
             CurrentUser = user;
-            var userJson = JsonSerializer.Serialize(user);
-            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "currentUser", userJson);
+            var session = new UserSession(user.Id, user.Name, user.Email, user.GlobalRole, user.IsEmailConfirmed);
+            var sessionJson = JsonSerializer.Serialize(session);
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "currentUser", sessionJson);
             NotifyStateChanged();
         }
 
@@ -69,5 +82,7 @@ namespace CineNote.Services
         }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
+
+        private record UserSession(int Id, string Name, string Email, string GlobalRole, bool IsEmailConfirmed);
     }
 }

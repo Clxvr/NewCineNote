@@ -1,4 +1,3 @@
-﻿
 using CineNote.Data;
 using CineNote.Models;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +18,13 @@ namespace CineNote.Services
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
+            int maxSort = await context.MovieProjects
+                .Where(p => p.UserId == project.UserId)
+                .Select(p => (int?)p.SortOrder)
+                .MaxAsync() ?? 0;
+
+            project.SortOrder = maxSort + 1;
+
             context.MovieProjects.Add(project);
             await context.SaveChangesAsync();
 
@@ -30,7 +36,10 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
 
             return await context.MovieProjects
+                .Include(p => p.User)
+                .Include(p => p.ProjectShares).ThenInclude(ps => ps.SharedWithUser)
                 .Where(p => p.UserId == userId)
+                .OrderBy(p => p.SortOrder)
                 .ToListAsync();
         }
 
@@ -88,6 +97,7 @@ namespace CineNote.Services
 
             return await context.SaveChangesAsync() > 0;
         }
+
         public async Task<bool> UpdateGenreAsync(int projectId, int userId, Genre genre)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -107,6 +117,7 @@ namespace CineNote.Services
 
             return true;
         }
+
         public async Task<bool> UpdateLoglineAsync(int projectId, int userId, string logline)
         {
             if (logline.Length > 250)
@@ -131,6 +142,25 @@ namespace CineNote.Services
 
             return true;
         }
+
+        public async Task UpdateProjectsOrderAsync(List<int> orderedIds, int userId)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var projects = await context.MovieProjects
+                .Where(p => p.UserId == userId)
+                .ToListAsync();
+
+            for (int i = 0; i < orderedIds.Count; i++)
+            {
+                var project = projects.FirstOrDefault(p => p.Id == orderedIds[i]);
+                if (project != null)
+                {
+                    project.SortOrder = i + 1;
+                }
+            }
+
+            await context.SaveChangesAsync();
+        }
     }
 }
-

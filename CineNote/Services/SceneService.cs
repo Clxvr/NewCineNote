@@ -1,4 +1,4 @@
-﻿using CineNote.Data;
+using CineNote.Data;
 using CineNote.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,6 +41,7 @@ namespace CineNote.Services
                 await _contextFactory.CreateDbContextAsync();
 
             return await context.Scenes
+                .Include(s => s.SceneCharacters).ThenInclude(sc => sc.Character)
                 .Where(s => s.MovieProjectId == projectId)
                 .OrderBy(s => s.SceneNumber)
                 .ToListAsync();

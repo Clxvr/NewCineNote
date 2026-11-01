@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using CineNote.Services
 @inject AuthService AuthService
 @inject NavigationManager Navigation
@@ -79,7 +79,7 @@
     private async Task HandleLogout()
     {
         await AuthService.Logout();
-        Navigation.NavigateTo("/home");
+        Navigation.NavigateTo("/");
     }
 
     public void Dispose()

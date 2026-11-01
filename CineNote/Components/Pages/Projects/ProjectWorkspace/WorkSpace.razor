@@ -1,9 +1,10 @@
-﻿@page "/projects/{ProjectId:int}"
+@page "/projects/{ProjectId:int}"
 @layout ProjectLayout
 @rendermode InteractiveServer
 @using CineNote.Models
 @using CineNote.Services
 @inject MovieProjectService ProjectService
+@inject AuthService AuthService
 
 @if (isLoading)
 {
@@ -129,7 +130,7 @@ else
     {
         isLoading = true;
 
-        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, 1);
+        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, AuthService.CurrentUser?.Id ?? 0);
 
         if (project != null)
         {
@@ -168,7 +169,7 @@ else
         {
             bool result = await ProjectService.UpdateLoglineAsync(
                 ProjectId,
-                1,
+                AuthService.CurrentUser?.Id ?? 0,
                 logline
             );
 
@@ -206,7 +207,7 @@ else
     {
         bool result = await ProjectService.UpdateSynopsisAsync(
             ProjectId,
-            1,
+            AuthService.CurrentUser?.Id ?? 0,
             updatedContent
         );
 

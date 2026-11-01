@@ -15,9 +15,6 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     )
 );
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddScoped<MovieProjectService>();
 builder.Services.AddScoped<CharacterService>();
 builder.Services.AddScoped<SceneService>();

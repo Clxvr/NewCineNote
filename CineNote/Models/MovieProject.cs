@@ -1,41 +1,44 @@
-﻿using CineNote.Models;
+using CineNote.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-public class MovieProject
+namespace CineNote.Models
 {
-    [Key]
-    [Column("id")]
-    public int Id { get; set; }
+    public class MovieProject
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
 
-    [Required(ErrorMessage = "Название кинопроекта является обязательным полем.")]
-    [StringLength(50, ErrorMessage = "Название не должно превышать 50 символов.")]
-    [Column("title")]
-    public string Title { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Название кинопроекта является обязательным полем.")]
+        [StringLength(50, ErrorMessage = "Название не должно превышать 50 символов.")]
+        [Column("title")]
+        public string Title { get; set; } = string.Empty;
 
-    [Required]
-    [Column("user_id")]
-    public int UserId { get; set; }
+        [Required]
+        [Column("user_id")]
+        public int UserId { get; set; }
 
-    [ForeignKey("UserId")]
-    public User? User { get; set; }
+        [Column("sort_order")]
+        public int SortOrder { get; set; }
 
-    [Required(ErrorMessage = "Укажите жанр.")]
-    [Column("genre")]
-    public Genre Genre { get; set; }
+        [ForeignKey("UserId")]
+        public User? User { get; set; }
 
-    [StringLength(250, ErrorMessage = "Логлайн не должен превышать 250 символов.")]
-    [Column("logline")]
-    public string Logline { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Укажите жанр.")]
+        [Column("genre")]
+        public Genre Genre { get; set; }
 
+        [StringLength(250, ErrorMessage = "Логлайн не должен превышать 250 символов.")]
+        [Column("logline")]
+        public string Logline { get; set; } = string.Empty;
 
- 
-    [StringLength(20000, ErrorMessage = "Синопсис слишком длинный.")]
-    [Column("synopsis", TypeName = "nvarchar(max)")]
-    public string Synopsis { get; set; } = string.Empty;
+        [StringLength(20000, ErrorMessage = "Синопсис слишком длинный.")]
+        [Column("synopsis", TypeName = "nvarchar(max)")]
+        public string Synopsis { get; set; } = string.Empty;
 
-
-    public ICollection<Character> Characters { get; set; } = new List<Character>();
-    public ICollection<Scene> Scenes { get; set; } = new List<Scene>();
-    public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();
+        public ICollection<Character> Characters { get; set; } = new List<Character>();
+        public ICollection<Scene> Scenes { get; set; } = new List<Scene>();
+        public ICollection<ProjectShare> ProjectShares { get; set; } = new List<ProjectShare>();
+    }
 }

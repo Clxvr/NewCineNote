@@ -1,4 +1,4 @@
-﻿@page "/verify-email"
+@page "/verify-email"
 @using CineNote.Services
 @inject UserService UserService
 @inject NavigationManager Navigation
@@ -27,9 +27,18 @@
 
     private string enteredCode = "";
     private string? errorMessage;
+    private int _attempts = 0;
+    private const int MaxAttempts = 5;
 
     private async Task VerifyCode()
     {
+        _attempts++;
+        if (_attempts > MaxAttempts)
+        {
+            errorMessage = "Превышено количество попыток. Зарегистрируйтесь заново.";
+            return;
+        }
+
         if (string.IsNullOrEmpty(Email))
         {
             errorMessage = "Ошибка: email не найден.";
@@ -47,7 +56,7 @@
         if (user.VerificationCode == enteredCode)
         {
             user.IsEmailConfirmed = true;
-            user.VerificationCode = null; 
+            user.VerificationCode = null;
             await UserService.UpdateUserAsync(user);
 
             Navigation.NavigateTo("/login");
