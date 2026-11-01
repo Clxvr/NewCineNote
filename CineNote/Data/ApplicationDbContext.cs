@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using CineNote.Models;
 
 namespace CineNote.Data
@@ -16,6 +16,7 @@ namespace CineNote.Data
         public DbSet<User> Users { get; set; }
         public DbSet<ProjectShare> ProjectShares { get; set; }
         public DbSet<SceneCharacter> SceneCharacters { get; set; }
+        public DbSet<ContactFeedback> ContactFeedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +29,7 @@ namespace CineNote.Data
             modelBuilder.Entity<Scene>().ToTable("scenes");
             modelBuilder.Entity<SceneCharacter>().ToTable("scene_characters");
             modelBuilder.Entity<ProjectShare>().ToTable("project_shares");
+            modelBuilder.Entity<ContactFeedback>().ToTable("contact_feedbacks");
 
             // Защита от циклов и каскадных путей для шаринга проектов
             modelBuilder.Entity<ProjectShare>()

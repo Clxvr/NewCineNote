@@ -1,8 +1,10 @@
 @page "/contact"
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
+@using CineNote.Models
 @using CineNote.Services
 @inject AuthService AuthService
+@inject FeedbackService FeedbackService
 
 <PageTitle>Обратная связь — CineNote</PageTitle>
 
@@ -26,7 +28,7 @@
                 </div>
                 <h4 class="fw-bold text-dark mb-2">Сообщение успешно отправлено!</h4>
                 <p class="text-muted mb-4">
-                    Спасибо за ваш отзыв! Мы ознакомимся с ним в ближайшее время.
+                    Спасибо за обращение! Данные сохранены в системе, а копия отправлена в службу поддержки.
                 </p>
                 <button class="btn btn-outline-dark rounded-pill px-4" @onclick="ResetForm">
                     Отправить ещё одно сообщение
@@ -37,6 +39,13 @@
         {
             <EditForm Model="@contactModel" OnValidSubmit="HandleSubmit">
                 <DataAnnotationsValidator />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger py-2 small mb-3">
+                        @errorMessage
+                    </div>
+                }
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold text-dark">Ваше имя:</label>
@@ -81,7 +90,7 @@
         }
     </div>
 
-    <!-- Контакты разработчика внизу -->
+    <!-- Контакты поддержки внизу -->
     <div class="row g-3 mt-4 text-center">
         <div class="col-sm-6">
             <div class="p-3 bg-white rounded-3 shadow-sm border-0">
@@ -101,11 +110,17 @@
 </div>
 
 @code {
-    private ContactFormModel contactModel = new();
+    private ContactFeedback contactModel = new();
     private bool isSubmitted = false;
     private bool isSending = false;
+    private string errorMessage = string.Empty;
 
     protected override void OnInitialized()
+    {
+        PreFillUserData();
+    }
+
+    private void PreFillUserData()
     {
         if (AuthService.CurrentUser != null)
         {
@@ -117,37 +132,34 @@
     private async Task HandleSubmit()
     {
         isSending = true;
-        // Имитируем быструю отправку
-        await Task.Delay(600);
-        isSending = false;
-        isSubmitted = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            bool success = await FeedbackService.SendFeedbackAsync(contactModel);
+            if (success)
+            {
+                isSubmitted = true;
+            }
+            else
+            {
+                errorMessage = "Не удалось отправить сообщение. Попробуйте позже.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Ошибка при отправке: " + ex.Message;
+        }
+        finally
+        {
+            isSending = false;
+        }
     }
 
     private void ResetForm()
     {
         contactModel = new();
-        if (AuthService.CurrentUser != null)
-        {
-            contactModel.Name = AuthService.CurrentUser.Name;
-            contactModel.Email = AuthService.CurrentUser.Email;
-        }
+        PreFillUserData();
         isSubmitted = false;
-    }
-
-    public class ContactFormModel
-    {
-        [Required(ErrorMessage = "Пожалуйста, укажите ваше имя.")]
-        [StringLength(50, ErrorMessage = "Имя слишком длинное.")]
-        public string Name { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Пожалуйста, укажите email.")]
-        [EmailAddress(ErrorMessage = "Введите корректный адрес электронной почты.")]
-        public string Email { get; set; } = string.Empty;
-
-        public string Subject { get; set; } = "Вопрос по работе CineNote";
-
-        [Required(ErrorMessage = "Текст сообщения не может быть пустым.")]
-        [StringLength(2000, MinimumLength = 10, ErrorMessage = "Сообщение должно содержать от 10 до 2000 символов.")]
-        public string Message { get; set; } = string.Empty;
     }
 }
