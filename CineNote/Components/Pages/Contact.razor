@@ -65,12 +65,12 @@
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold text-dark">Тема обращения:</label>
-                    <InputSelect class="form-select rounded-3" @bind-Value="contactModel.Subject">
+                    <select class="form-select rounded-3" @bind="contactModel.Subject">
                         <option value="Вопрос по работе CineNote">Вопрос по работе CineNote</option>
                         <option value="Предложение по функционалу">Предложение по функционалу</option>
                         <option value="Сообщение об ошибке">Сообщение об ошибке</option>
                         <option value="Другое">Другое</option>
-                    </InputSelect>
+                    </select>
                 </div>
 
                 <div class="mb-4">
@@ -83,7 +83,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-warning w-100 py-2 fw-semibold rounded-3 shadow-sm text-dark"
-                        disabled="@isSending">
+                        disabled="@(isSending ? "disabled" : null)">
                     @(isSending ? "Отправка..." : "Отправить сообщение")
                 </button>
             </EditForm>
