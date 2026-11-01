@@ -1,29 +1,28 @@
-﻿.top-navbar {
-    background: rgba(255, 255, 255, 0.88) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+.top-navbar {
+    background: linear-gradient(135deg, #F7CB53 0%, #F1BE36 100%) !important;
+    border-bottom: 2px solid #E0B034;
     padding-top: 10px;
     padding-bottom: 10px;
     position: sticky;
     top: 0;
     z-index: 1030;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .navbar-brand {
-    color: #111827 !important;
+    color: #1A1A1A !important;
     font-size: 1.35rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
 }
 
 ::deep .navbar-nav .nav-link,
 .navbar-nav .nav-link {
-    color: #4B5563 !important;
+    color: #262626 !important;
     text-decoration: none !important;
     font-size: 0.95rem;
-    font-weight: 500;
-    padding: 8px 16px !important;
+    font-weight: 600;
+    padding: 8px 18px !important;
     border-radius: 10px;
     transition: all 0.2s ease;
     display: inline-flex;
@@ -32,17 +31,31 @@
 
 ::deep .navbar-nav .nav-link:hover,
 .navbar-nav .nav-link:hover {
-    background-color: #FEF3C7 !important;
-    color: #92400E !important;
+    background-color: rgba(255, 255, 255, 0.45) !important;
+    color: #000000 !important;
     transform: translateY(-1px);
 }
 
 ::deep .navbar-nav .nav-link.active,
 .navbar-nav .nav-link.active {
-    background-color: #F59E0B !important;
-    color: #111827 !important;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25) !important;
+    background-color: #FFFFFF !important;
+    color: #1A1A1A !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.top-navbar .btn-outline-dark {
+    border-color: #2A2A2A !important;
+    color: #1A1A1A !important;
+    font-weight: 600 !important;
+    background-color: rgba(255, 255, 255, 0.35);
+    transition: all 0.2s ease;
+}
+
+.top-navbar .btn-outline-dark:hover {
+    background-color: #1A1A1A !important;
+    border-color: #1A1A1A !important;
+    color: #FFFFFF !important;
 }
 
 .main-content {
