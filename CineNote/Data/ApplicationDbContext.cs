@@ -22,7 +22,6 @@ namespace CineNote.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Принудительно задаем имена всех таблиц в нижнем регистре (snake_case)
             modelBuilder.Entity<User>().ToTable("users");
             modelBuilder.Entity<MovieProject>().ToTable("movie_projects");
             modelBuilder.Entity<Character>().ToTable("characters");
@@ -31,14 +30,12 @@ namespace CineNote.Data
             modelBuilder.Entity<ProjectShare>().ToTable("project_shares");
             modelBuilder.Entity<ContactFeedback>().ToTable("contact_feedbacks");
 
-            // Защита от циклов и каскадных путей для шаринга проектов
             modelBuilder.Entity<ProjectShare>()
                 .HasOne(ps => ps.SharedWithUser)
                 .WithMany(u => u.ProjectShares)
                 .HasForeignKey(ps => ps.SharedWithUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Защита от циклов для связей сцен и персонажей в SceneCharacter
             modelBuilder.Entity<SceneCharacter>()
                 .HasOne(sc => sc.Scene)
                 .WithMany(s => s.SceneCharacters)

@@ -19,7 +19,6 @@ namespace CineNote.Services
 
         public async Task<bool> SendFeedbackAsync(ContactFeedback feedback)
         {
-            // 1. Сохранение в базу данных
             using (var context = await _contextFactory.CreateDbContextAsync())
             {
                 feedback.CreatedAt = DateTime.UtcNow;
@@ -27,7 +26,6 @@ namespace CineNote.Services
                 await context.SaveChangesAsync();
             }
 
-            // 2. Отправка уведомления на почту (в Mailtrap)
             try
             {
                 var mskTime = DateTime.UtcNow.AddHours(3);
@@ -64,7 +62,6 @@ namespace CineNote.Services
             }
             catch
             {
-                // Если почтовый сервер временно недоступен, сообщение в БД уже сохранено
             }
 
             return true;

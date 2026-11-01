@@ -22,7 +22,6 @@ else
 {
     <div class="d-flex flex-column gap-4">
 
-        <!-- Логлайн -->
         <div class="p-4 rounded-4 bg-light border-0 shadow-sm">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -91,7 +90,6 @@ else
 
         </div>
 
-        <!-- Синопсис -->
         <div class="synopsis-section p-4 rounded-4">
 
             <div class="mb-3">
@@ -140,7 +138,6 @@ else
         isLoading = false;
     }
 
-    // Начало редактирования логлайна
     private void StartEditingLogline()
     {
         editedLogline = project?.Logline ?? string.Empty;
@@ -148,7 +145,6 @@ else
         isEditingLogline = true;
     }
 
-    // Сохранение логлайна
     private async Task SaveLogline()
     {
         if (project == null)
@@ -194,7 +190,6 @@ else
         }
     }
 
-    // Отмена редактирования
     private void CancelEditingLogline()
     {
         editedLogline = project?.Logline ?? string.Empty;
@@ -202,7 +197,6 @@ else
         loglineMessage = string.Empty;
     }
 
-    // Сохранение синопсиса
     private async Task HandleSaveSynopsis(string updatedContent)
     {
         bool result = await ProjectService.UpdateSynopsisAsync(
