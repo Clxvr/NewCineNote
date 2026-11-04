@@ -1,0 +1,45 @@
+﻿@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<!-- Чистый контейнер только для редактора -->
+<div class="bg-white">
+    <div @ref="editorElement" style="min-height: @MinHeight;"></div>
+</div>
+
+@code {
+    [Parameter] public string InitialHtml { get; set; } = string.Empty;
+    [Parameter] public string MinHeight { get; set; } = "250px";
+
+    private ElementReference editorElement;
+    private IJSObjectReference? jsModule;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Подключаем твой идеально работающий скрипт!
+            jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "/js/synopsisEditor.js?v=2");
+            await jsModule.InvokeVoidAsync("initializeEditor", editorElement, InitialHtml);
+        }
+    }
+
+    // Этот метод мы будем вызывать перед сохранением формы в базу
+    public async Task<string> GetContentAsync()
+    {
+        if (jsModule != null)
+        {
+            return await jsModule.InvokeAsync<string>("getContent", editorElement);
+        }
+        return InitialHtml;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (jsModule != null)
+        {
+            try { await jsModule.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+    }
+}

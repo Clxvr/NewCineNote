@@ -142,3 +142,54 @@ button {
         overflow-x: auto;
     }
 }
+/* --- СЦЕНАРНЫЙ СТАНДАРТ --- */
+
+.ql-container.ql-snow {
+    font-family: "Courier New", Courier, monospace !important;
+    font-size: 14pt !important;
+    line-height: 1.2 !important;
+    background-color: #ffffff;
+    color: #000000;
+}
+
+/* Обычный текст (Действие) — строго по левому краю, без сдвигов */
+.ql-editor p {
+    font-weight: normal !important;
+    margin-left: 0cm !important;
+    margin-right: 2cm !important;
+    margin-bottom: 1em !important;
+    text-align: left !important;
+}
+
+/* Heading 1 -> Заголовок сцены (Капслок, по левому краю) */
+.ql-editor h1 {
+    font-size: 14pt !important;
+    font-weight: normal !important;
+    text-transform: uppercase !important;
+    margin-top: 1.5em !important;
+    margin-bottom: 0.5em !important;
+    margin-left: 0cm !important;
+    text-align: left !important;
+}
+
+/* Heading 2 -> Имя персонажа (Сдвиг вправо на 6см) */
+.ql-editor h2 {
+    font-size: 14pt !important;
+    font-weight: normal !important;
+    text-transform: uppercase !important;
+    margin-top: 1.5em !important;
+    margin-bottom: 0.2em !important;
+    margin-left: 6cm !important;
+    text-align: left !important;
+}
+
+/* Heading 3 -> Ремарка / Диалог (Сдвиг вправо на 4см) */
+.ql-editor h3 {
+    font-size: 14pt !important;
+    font-style: italic !important;
+    font-weight: normal !important;
+    margin-top: 0.5em !important;
+    margin-bottom: 1em !important;
+    margin-left: 4cm !important;
+    text-align: left !important;
+}
