@@ -42,38 +42,21 @@ else if (!scenes.Any())
 }
 else
 {
-    <!-- Сетка карточек в стиле персонажей -->
     <div class="row g-3">
         @foreach (var scene in scenes)
         {
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-3 position-relative overflow-hidden">
-                    <!-- Синяя полоска слева -->
                     <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #2563EB;"></div>
 
                     <div class="card-body d-flex flex-column justify-content-between p-0 ps-2">
                         <div class="flex-grow-1 mt-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h5 class="fw-bold text-dark m-0 fs-6 text-uppercase">
-                                    <span class="text-muted me-1">@scene.SceneNumber.</span>@scene.Slugline
+                                <h5 class="fw-bold text-dark m-0 fs-5 text-uppercase">
+                                    Сцена @scene.SceneNumber
                                 </h5>
                             </div>
 
-                            <span class="fw-semibold text-dark small d-block mb-1 mt-3">Описание действия:</span>
-
-                            <div class="text-muted small lh-base mb-0 overflow-hidden" style="max-height: 90px; position: relative;">
-                                @if (string.IsNullOrEmpty(scene.ActionDescription))
-                                {
-                                    <span>описание отсутствует.</span>
-                                }
-                                else
-                                {
-                                    @((MarkupString)scene.ActionDescription)
-                                }
-                                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: linear-gradient(transparent, white);"></div>
-                            </div>
-
-                            <!-- Список персонажей в сцене -->
                             @if (scene.SceneCharacters != null && scene.SceneCharacters.Any())
                             {
                                 <div class="mt-3 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
@@ -88,7 +71,7 @@ else
 
                         <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
                             <button class="btn btn-sm btn-outline-secondary rounded-2" @onclick="() => OpenEditPage(scene)">
-                                Редактировать
+                                Открыть
                             </button>
                             <button class="btn btn-sm btn-outline-danger rounded-2" @onclick="() => DeleteScene(scene.Id)">
                                 Удалить

@@ -34,7 +34,6 @@
     else
     {
         <div class="row g-4">
-            <!-- Левая колонка: Настройки сцены и редактор действия -->
             <div class="col-12 col-lg-8 d-flex flex-column gap-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
                     <div class="row g-3">
@@ -73,7 +72,6 @@
                 </div>
             </div>
 
-            <!-- Правая колонка: Чекбоксы персонажей, участвующих в сцене -->
             <div class="col-12 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
                     <h5 class="fw-bold text-dark mb-3">Участники сцены</h5>
@@ -123,7 +121,6 @@
     {
         isLoading = true;
 
-        // Загружаем всех персонажей проекта
         allProjectCharacters = await CharacterService.GetCharactersByProjectIdAsync(ProjectId);
 
         if (SceneId.HasValue)
@@ -132,7 +129,6 @@
             if (existingScene != null)
             {
                 scene = existingScene;
-                // Заполняем выбранных персонажей из базы
                 selectedCharacterIds = new HashSet<int>(scene.SceneCharacters.Select(sc => sc.CharacterId));
             }
         }
@@ -170,20 +166,7 @@
             scene.ActionDescription = await actionEditor.GetContentAsync();
         }
 
-        int currentSceneId = scene.Id;
-
-        if (currentSceneId == 0)
-        {
-            var createdScene = await SceneService.CreateSceneAsync(scene);
-            currentSceneId = createdScene.Id;
-        }
-        else
-        {
-            await SceneService.UpdateSceneAsync(scene);
-        }
-
-        // Сохраняем привязку персонажей чекбоксами в таблицу SceneCharacters
-        await SceneService.UpdateSceneCharactersAsync(currentSceneId, selectedCharacterIds.ToList());
+        await SceneService.SaveSceneWithCharactersAsync(scene, selectedCharacterIds.ToList());
 
         isSaving = false;
         GoBack();
