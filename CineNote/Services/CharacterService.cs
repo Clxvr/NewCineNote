@@ -1,5 +1,4 @@
-﻿
-using CineNote.Data;
+﻿using CineNote.Data;
 using CineNote.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,7 +50,19 @@ namespace CineNote.Services
             if (character == null)
                 return false;
 
+            // 1. Сначала удаляем все связи персонажа со сценами в таблице scene_characters
+            var links = await context.SceneCharacters
+                .Where(sc => sc.CharacterId == id)
+                .ToListAsync();
+
+            if (links.Any())
+            {
+                context.SceneCharacters.RemoveRange(links);
+            }
+
+            // 2. Теперь удаляем самого персонажа
             context.Characters.Remove(character);
+
             return await context.SaveChangesAsync() > 0;
         }
     }

@@ -1,4 +1,4 @@
-using CineNote.Data;
+п»їusing CineNote.Data;
 using CineNote.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,18 +50,35 @@ namespace CineNote.Services
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
-            // Сначала находим саму сцену вместе со связанными персонажами
+            // 1. РќР°С…РѕРґРёРј СЃС†РµРЅСѓ РІРјРµСЃС‚Рµ СЃРѕ СЃРІСЏР·Р°РЅРЅС‹РјРё РїРµСЂСЃРѕРЅР°Р¶Р°РјРё
             var scene = await context.Scenes
                 .Include(s => s.SceneCharacters)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (scene != null)
             {
-                // Удаляем связи из промежуточной таблицы, чтобы не было ошибки FK
-                context.SceneCharacters.RemoveRange(scene.SceneCharacters);
+                int projectId = scene.MovieProjectId;
 
-                // Теперь безопасно удаляем саму сцену
+                // 2. РЈРґР°Р»СЏРµРј СЃРІСЏР·Рё РёР· РїСЂРѕРјРµР¶СѓС‚РѕС‡РЅРѕР№ С‚Р°Р±Р»РёС†С‹ scene_characters
+                if (scene.SceneCharacters.Any())
+                {
+                    context.SceneCharacters.RemoveRange(scene.SceneCharacters);
+                }
+
+                // 3. РЈРґР°Р»СЏРµРј СЃР°РјСѓ СЃС†РµРЅСѓ
                 context.Scenes.Remove(scene);
+                await context.SaveChangesAsync();
+
+                // 4. РџРµСЂРµСЃС‡РёС‚С‹РІР°РµРј РЅРµРїСЂРµСЂС‹РІРЅСѓСЋ РЅСѓРјРµСЂР°С†РёСЋ РѕСЃС‚Р°РІС€РёС…СЃСЏ СЃС†РµРЅ С„РёР»СЊРјР° (1, 2, 3...)
+                var remainingScenes = await context.Scenes
+                    .Where(s => s.MovieProjectId == projectId)
+                    .OrderBy(s => s.SceneNumber)
+                    .ToListAsync();
+
+                for (int i = 0; i < remainingScenes.Count; i++)
+                {
+                    remainingScenes[i].SceneNumber = i + 1;
+                }
 
                 await context.SaveChangesAsync();
             }
@@ -94,7 +111,7 @@ namespace CineNote.Services
             await context.SaveChangesAsync();
         }
 
-        // Объединенный метод для атомарного сохранения сцены и персонажей одним контекстом
+        // РћР±СЉРµРґРёРЅРµРЅРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ Р°С‚РѕРјР°СЂРЅРѕРіРѕ СЃРѕС…СЂР°РЅРµРЅРёСЏ СЃС†РµРЅС‹ Рё РїРµСЂСЃРѕРЅР°Р¶РµР№ РѕРґРЅРёРј РєРѕРЅС‚РµРєСЃС‚РѕРј
         public async Task SaveSceneWithCharactersAsync(Scene scene, List<int> selectedCharacterIds)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -108,7 +125,7 @@ namespace CineNote.Services
 
                 scene.SceneNumber = maxOrderNumber + 1;
                 context.Scenes.Add(scene);
-                await context.SaveChangesAsync(); // Получаем сгенерированный Id
+                await context.SaveChangesAsync(); // РџРѕР»СѓС‡Р°РµРј СЃРіРµРЅРµСЂРёСЂРѕРІР°РЅРЅС‹Р№ Id
             }
             else
             {
