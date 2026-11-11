@@ -45,105 +45,101 @@ else if (!scenes.Any())
 else
 {
     <div class="row g-3">
-        @for (int i = 0; i < scenes.Count; i++)
+        @foreach (var scene in scenes)
         {
-            var scene = scenes[i];
-            bool isFirst = (i == 0);
-            bool isLast = (i == scenes.Count - 1);
-
             <div class="col-12 col-md-6 col-lg-4" @key="scene.Id">
-                <div class="card h-100 border-0 shadow-sm rounded-4 p-3 position-relative overflow-hidden scene-card">
-                    <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #F59E0B;"></div>
+                <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "")"
+                     draggable="true"
+                     @ondragstart="() => OnDragStart(scene)"
+                     @ondragend="OnDragEnd"
+                     @ondragover:preventDefault="true"
+                     @ondragenter="() => OnDragEnter(scene)"
+                     @ondrop="() => OnDrop(scene)">
+                    <div class="card-accent-bar"></div>
 
-                    <div class="card-body d-flex flex-column justify-content-between p-0 ps-2">
-                        <div class="flex-grow-1">
-                            <!-- Верхняя плашка: номер + стрелки перемещения -->
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge bg-dark text-white rounded-pill px-3 py-1 fw-bold fs-6">
+                    <div>
+                        <!-- Верхняя плашка: Drag Handle + Номер сцены + Кнопка удаления -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="drag-handle" title="Зажмите для перетаскивания">
+                                    <i class="bi bi-grip-vertical fs-5"></i>
+                                </span>
+                                <span class="badge scene-num-badge rounded-pill px-3 py-1 fw-bold">
                                     СЦЕНА @scene.SceneNumber
                                 </span>
-
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button class="btn btn-outline-secondary py-0 px-2"
-                                            title="Переместить вверх"
-                                            disabled="@isFirst"
-                                            @onclick="() => MoveUp(scene.Id)">
-                                        <i class="bi bi-arrow-up"></i>
-                                    </button>
-                                    <button class="btn btn-outline-secondary py-0 px-2"
-                                            title="Переместить вниз"
-                                            disabled="@isLast"
-                                            @onclick="() => MoveDown(scene.Id)">
-                                        <i class="bi bi-arrow-down"></i>
-                                    </button>
-                                </div>
                             </div>
 
-                            <!-- Название сцены (редактируемое) -->
-                            <div class="mb-2">
-                                @if (editingTitleSceneId == scene.Id)
-                                {
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" @bind="tempTitle" @onkeyup="HandleTitleKeyUp" />
-                                        <button class="btn btn-warning text-dark" @onclick="() => SaveInlineTitle(scene)"><i class="bi bi-check-lg"></i></button>
-                                        <button class="btn btn-light" @onclick="CancelInlineTitle"><i class="bi bi-x-lg"></i></button>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <h5 class="fw-bold text-dark m-0 fs-6 text-truncate" title="@scene.DisplayTitle">
-                                            @scene.DisplayTitle
-                                        </h5>
-                                        <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none" title="Быстро изменить название" @onclick="() => StartInlineTitle(scene)">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                    </div>
-                                }
-                            </div>
+                            <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none"
+                                    @onclick="async () => await DeleteScene(scene.Id)"
+                                    title="Удалить сцену">
+                                <i class="bi bi-trash3 me-1"></i>Удалить
+                            </button>
+                        </div>
 
-                            <!-- Сценарный заголовок (Slugline) -->
-                            <div class="text-muted small fw-semibold mb-2">
-                                <i class="bi bi-geo-alt me-1 text-warning"></i> @scene.Slugline
-                            </div>
-
-                            <!-- Персонажи сцены -->
-                            @if (scene.SceneCharacters != null && scene.SceneCharacters.Any())
+                        <!-- Название сцены (редактируемое) -->
+                        <div class="mb-2">
+                            @if (editingTitleSceneId == scene.Id)
                             {
-                                <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
-                                    <span class="text-muted small me-1">Герои:</span>
-                                    @foreach (var sc in scene.SceneCharacters)
-                                    {
-                                        <span class="badge bg-light text-dark border small rounded-pill px-2 py-1">@sc.Character?.Name</span>
-                                    }
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control" @bind="tempTitle" @onkeyup="HandleTitleKeyUp" />
+                                    <button class="btn btn-warning text-dark" @onclick="() => SaveInlineTitle(scene)"><i class="bi bi-check-lg"></i></button>
+                                    <button class="btn btn-light" @onclick="CancelInlineTitle"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="fw-bold text-dark m-0 fs-6 text-truncate" title="@scene.DisplayTitle">
+                                        @scene.DisplayTitle
+                                    </h5>
+                                    <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none edit-title-btn"
+                                            title="Быстро изменить название"
+                                            @onclick="() => StartInlineTitle(scene)">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
                                 </div>
                             }
                         </div>
 
-                        <!-- Нижняя панель действий -->
-                        <div class="d-flex justify-content-between align-items-center gap-1 mt-3 pt-2 border-top flex-wrap">
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary rounded-2 me-1"
-                                        title="Вставить новую сцену сразу после этой"
-                                        @onclick="() => InsertSceneAfter(scene.SceneNumber)">
-                                    <i class="bi bi-plus-circle me-1"></i>После
-                                </button>
-                                <button class="btn btn-outline-secondary rounded-2"
-                                        title="Дублировать сцену (клонировать)"
-                                        @onclick="() => DuplicateScene(scene.Id)">
-                                    <i class="bi bi-copy me-1"></i>Копия
-                                </button>
-                            </div>
-
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-sm btn-warning rounded-2 fw-semibold text-dark" @onclick="() => OpenEditPage(scene)">
-                                    Открыть
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger rounded-2" title="Удалить сцену" @onclick="() => DeleteScene(scene.Id)">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </div>
+                        <!-- Сценарный заголовок (Slugline) -->
+                        <div class="text-muted small fw-semibold mb-2">
+                            <i class="bi bi-geo-alt me-1 text-warning"></i> @scene.Slugline
                         </div>
+
+                        <!-- Персонажи сцены -->
+                        @if (scene.SceneCharacters != null && scene.SceneCharacters.Any())
+                        {
+                            <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
+                                <span class="text-muted small me-1">Герои:</span>
+                                @foreach (var sc in scene.SceneCharacters)
+                                {
+                                    <span class="badge bg-light text-dark border small rounded-pill px-2 py-1">@sc.Character?.Name</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Нижняя панель действий: Следующая, Клонировать и Открыть -->
+                    <div class="card-footer-actions d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
+                                    title="Вставить новую сцену сразу после этой"
+                                    @onclick="() => InsertSceneAfter(scene.SceneNumber)">
+                                <i class="bi bi-plus-circle me-1 text-warning"></i>
+                                <span>Следующая</span>
+                            </button>
+                            <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
+                                    title="Клонировать сцену (создать дубликат)"
+                                    @onclick="() => DuplicateScene(scene.Id)">
+                                <i class="bi bi-copy me-1 text-primary"></i>
+                                <span>Клонировать</span>
+                            </button>
+                        </div>
+
+                        <button class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-semibold text-dark shadow-sm open-scene-btn"
+                                @onclick="() => OpenEditPage(scene)">
+                            <i class="bi bi-folder2-open me-1"></i> Открыть
+                        </button>
                     </div>
                 </div>
             </div>
@@ -156,6 +152,8 @@ else
 
     private List<Scene> scenes = new();
     private bool isLoading = true;
+
+    private Scene? draggedScene;
 
     private int? editingTitleSceneId;
     private string tempTitle = string.Empty;
@@ -187,22 +185,52 @@ else
         Navigation.NavigateTo($"/projects/{ProjectId}/scenes/{scene.Id}/edit");
     }
 
-    private async Task MoveUp(int sceneId)
+    private void OnDragStart(Scene scene)
     {
-        bool success = await SceneService.MoveSceneUpAsync(sceneId);
-        if (success)
+        draggedScene = scene;
+    }
+
+    private void OnDragEnter(Scene targetScene)
+    {
+        if (draggedScene == null || draggedScene == targetScene)
+            return;
+
+        int originalIndex = scenes.IndexOf(draggedScene);
+        int targetIndex = scenes.IndexOf(targetScene);
+
+        if (originalIndex != -1 && targetIndex != -1)
         {
-            await LoadScenes();
+            scenes.RemoveAt(originalIndex);
+            scenes.Insert(targetIndex, draggedScene);
+
+            // Автоматически пересчитываем номера сцен в интерфейсе на лету (1, 2, 3...)
+            for (int i = 0; i < scenes.Count; i++)
+            {
+                scenes[i].SceneNumber = i + 1;
+            }
+
+            StateHasChanged();
         }
     }
 
-    private async Task MoveDown(int sceneId)
+    private async Task OnDrop(Scene targetScene)
     {
-        bool success = await SceneService.MoveSceneDownAsync(sceneId);
-        if (success)
+        if (draggedScene == null)
         {
-            await LoadScenes();
+            draggedScene = null;
+            return;
         }
+
+        var orderedIds = scenes.Select(s => s.Id).ToList();
+        await SceneService.UpdateScenesOrderAsync(orderedIds, ProjectId);
+
+        draggedScene = null;
+    }
+
+    private void OnDragEnd()
+    {
+        draggedScene = null;
+        StateHasChanged();
     }
 
     private async Task DuplicateScene(int sceneId)
@@ -251,7 +279,7 @@ else
 
     private async Task DeleteScene(int id)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Удалить эту сцену? Нумерация остальных сцен автоматически сдвинется.");
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "Удалить эту сцену? Нумерация остальных сцен автоматически пересчитается.");
         if (!confirmed) return;
 
         await SceneService.DeleteSceneAsync(id);

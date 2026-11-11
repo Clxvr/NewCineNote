@@ -1,0 +1,114 @@
+.scene-card {
+    background: #ffffff;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    user-select: none;
+    position: relative;
+    border-radius: 1rem !important;
+}
+
+.scene-card[draggable="true"] {
+    cursor: grab;
+}
+
+.scene-card[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.scene-card.dragging {
+    opacity: 0.35;
+    border: 2px dashed #F59E0B !important;
+    box-shadow: none !important;
+    transform: scale(0.98);
+}
+
+.scene-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08) !important;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: #9CA3AF;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.drag-handle:hover {
+    color: #1F2937;
+}
+
+.card-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: #F59E0B;
+    border-top-left-radius: 1rem;
+    border-bottom-left-radius: 1rem;
+}
+
+.scene-num-badge {
+    background-color: #1F2937;
+    color: #FFFFFF;
+    font-size: 0.82rem;
+    letter-spacing: 0.4px;
+}
+
+.delete-badge {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    background-color: #FFF5F5;
+    border: 1px solid #FEB2B2;
+    color: #DC2626;
+    cursor: pointer;
+}
+
+.scene-card:hover .delete-badge {
+    opacity: 1;
+}
+
+.btn-action-subtle {
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-action-subtle:hover {
+    background-color: #FFFBEB;
+    border-color: #FDE68A;
+    color: #92400E;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.open-scene-btn {
+    transition: all 0.2s ease;
+}
+
+.open-scene-btn:hover {
+    background-color: #D97706 !important;
+    border-color: #D97706 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3) !important;
+}
+
+.edit-title-btn {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.edit-title-btn:hover {
+    opacity: 1;
+    color: #F59E0B !important;
+}

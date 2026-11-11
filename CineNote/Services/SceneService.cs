@@ -134,6 +134,30 @@ namespace CineNote.Services
         }
 
         /// <summary>
+        /// Обновляет порядок сцен по переданному списку ID (Drag-and-Drop)
+        /// со сквозным пересчетом номеров сцен 1, 2, 3...
+        /// </summary>
+        public async Task UpdateScenesOrderAsync(List<int> orderedSceneIds, int projectId)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var scenes = await context.Scenes
+                .Where(s => s.MovieProjectId == projectId)
+                .ToListAsync();
+
+            for (int i = 0; i < orderedSceneIds.Count; i++)
+            {
+                var sc = scenes.FirstOrDefault(s => s.Id == orderedSceneIds[i]);
+                if (sc != null)
+                {
+                    sc.SceneNumber = i + 1;
+                }
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        /// <summary>
         /// Перемещение сцены Вверх (к началу фильма).
         /// </summary>
         public async Task<bool> MoveSceneUpAsync(int sceneId)
