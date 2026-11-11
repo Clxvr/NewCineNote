@@ -93,6 +93,28 @@ namespace CineNote.Services
             if (project == null)
                 return false;
 
+            var scenes = await context.Scenes
+                .Include(s => s.SceneCharacters)
+                .Where(s => s.MovieProjectId == id)
+                .ToListAsync();
+
+            foreach (var scene in scenes)
+            {
+                context.SceneCharacters.RemoveRange(scene.SceneCharacters);
+            }
+
+            context.Scenes.RemoveRange(scenes);
+
+            var characters = await context.Characters
+                .Where(c => c.MovieProjectId == id)
+                .ToListAsync();
+            context.Characters.RemoveRange(characters);
+
+            var shares = await context.ProjectShares
+                .Where(ps => ps.MovieProjectId == id)
+                .ToListAsync();
+            context.ProjectShares.RemoveRange(shares);
+
             context.MovieProjects.Remove(project);
 
             return await context.SaveChangesAsync() > 0;
