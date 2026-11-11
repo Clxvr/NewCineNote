@@ -8,14 +8,14 @@
 @inject NavigationManager Navigation
 
 <div class="d-flex flex-column h-100">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-outline-secondary rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;" @onclick="GoBack">
                 <i class="bi bi-arrow-left"></i>
             </button>
             <div>
-                <h3 class="fw-bold text-dark mb-0">@(SceneId.HasValue ? $"Сцена {scene.SceneNumber}" : "Новая сцена")</h3>
-                <p class="text-muted small mb-0">Полноэкранный редактор</p>
+                <h3 class="fw-bold text-dark mb-0">@(SceneId.HasValue ? $"Сцена {scene.SceneNumber}: {scene.DisplayTitle}" : (insertAfterNumber.HasValue ? $"Вставка сцены после №{insertAfterNumber}" : "Новая сцена"))</h3>
+                <p class="text-muted small mb-0">Полноэкранный сценарный редактор</p>
             </div>
         </div>
         <button class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm" @onclick="SaveScene" disabled="@isSaving">
@@ -36,6 +36,11 @@
         <div class="row g-4">
             <div class="col-12 col-lg-8 d-flex flex-column gap-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">Название сцены (необязательно)</label>
+                        <InputText @bind-Value="scene.Title" class="form-control border-0 shadow-sm rounded-3" placeholder="Например: Знакомство в кафе или Побег через крышу" />
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold small text-dark">ИНТ/НАТ</label>
@@ -64,7 +69,7 @@
 
                 <div class="card border-0 shadow-sm rounded-4 bg-white flex-grow-1 d-flex flex-column overflow-hidden">
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
-                        <h5 class="fw-bold text-dark m-0">Описание действия</h5>
+                        <h5 class="fw-bold text-dark m-0">Описание действия и диалоги</h5>
                     </div>
                     <div class="card-body p-4 d-flex flex-column">
                         <QuillEditor @ref="actionEditor" InitialHtml="@scene.ActionDescription" MinHeight="400px" />
@@ -109,11 +114,12 @@
 @code {
     [Parameter] public int ProjectId { get; set; }
     [Parameter] public int? SceneId { get; set; }
+    [SupplyParameterFromQuery(Name = "after")] public int? insertAfterNumber { get; set; }
 
     private Scene scene = new();
     private List<Character> allProjectCharacters = new();
     private HashSet<int> selectedCharacterIds = new();
-    private QuillEditor actionEditor;
+    private QuillEditor? actionEditor;
     private bool isLoading = true;
     private bool isSaving = false;
 
@@ -135,11 +141,11 @@
         else
         {
             scene = new Scene
-                {
-                    MovieProjectId = ProjectId,
-                    LocationType = LocationType.INT,
-                    TimeOfDay = TimeOfDay.Day
-                };
+            {
+                MovieProjectId = ProjectId,
+                LocationType = LocationType.INT,
+                TimeOfDay = TimeOfDay.Day
+            };
         }
 
         isLoading = false;
@@ -166,7 +172,19 @@
             scene.ActionDescription = await actionEditor.GetContentAsync();
         }
 
-        await SceneService.SaveSceneWithCharactersAsync(scene, selectedCharacterIds.ToList());
+        if (scene.Id == 0 && insertAfterNumber.HasValue)
+        {
+            // Вставка строго после сцены №N
+            var created = await SceneService.InsertSceneAfterAsync(ProjectId, insertAfterNumber.Value, scene);
+            if (selectedCharacterIds.Any())
+            {
+                await SceneService.UpdateSceneCharactersAsync(created.Id, selectedCharacterIds.ToList());
+            }
+        }
+        else
+        {
+            await SceneService.SaveSceneWithCharactersAsync(scene, selectedCharacterIds.ToList());
+        }
 
         isSaving = false;
         GoBack();

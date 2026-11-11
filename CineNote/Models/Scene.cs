@@ -20,11 +20,15 @@ namespace CineNote.Models
         [Column("scene_number")]
         public int SceneNumber { get; set; }
 
+        [Column("title")]
+        [StringLength(100)]
+        public string Title { get; set; } = string.Empty;
+
         [Column("location_type")]
         public LocationType LocationType { get; set; } = LocationType.INT;
 
         [Column("location_name")]
-        [StringLength(30)]
+        [StringLength(50)]
         public string LocationName { get; set; } = string.Empty;
 
         [Column("time_of_day")]
@@ -35,6 +39,9 @@ namespace CineNote.Models
 
         [NotMapped]
         public string Slugline => $"{LocationType.ToDisplayName()} {LocationName} - {TimeOfDay.ToDisplayName()}".ToUpper();
+
+        [NotMapped]
+        public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? $"Сцена {SceneNumber}" : Title;
 
         public ICollection<SceneCharacter> SceneCharacters { get; set; } = new List<SceneCharacter>();
     }

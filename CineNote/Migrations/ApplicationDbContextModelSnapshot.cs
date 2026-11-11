@@ -196,8 +196,8 @@ namespace CineNote.Migrations
 
                     b.Property<string>("LocationName")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("location_name");
 
                     b.Property<int>("LocationType")
@@ -215,6 +215,12 @@ namespace CineNote.Migrations
                     b.Property<int>("TimeOfDay")
                         .HasColumnType("int")
                         .HasColumnName("time_of_day");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("title");
 
                     b.HasKey("Id");
 
