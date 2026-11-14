@@ -81,11 +81,25 @@
     transform: translateY(-4px) scale(1.02);
 }
 
-.act-body.act-drop-active {
+.act-drag-hoverable {
+    border: 2px dashed #CBD5E1 !important;
+}
+
+.act-drag-hoverable:hover {
+    border-color: #F59E0B !important;
+    background-color: #FFFDF5 !important;
+}
+
+.act-empty-dropzone {
+    border: 2px dashed #F59E0B !important;
+    background-color: #FFFDF5 !important;
+    padding: 2rem !important;
+    transition: all 0.2s ease;
+}
+
+.act-empty-dropzone:hover {
     background-color: #FFFBEB !important;
-    outline: 2px dashed #F59E0B;
-    outline-offset: -6px;
-    border-radius: 0 0 1rem 1rem;
+    transform: scale(1.01);
 }
 
 .scene-card:hover {
