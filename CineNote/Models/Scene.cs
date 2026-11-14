@@ -37,6 +37,12 @@ namespace CineNote.Models
         [Column("action_description")]
         public string ActionDescription { get; set; } = string.Empty;
 
+        [Column("status")]
+        public SceneStatus Status { get; set; } = SceneStatus.Draft;
+
+        [Column("dramatic_structure")]
+        public DramaticStructure DramaticStructure { get; set; } = DramaticStructure.None;
+
         [NotMapped]
         public string Slugline => $"{LocationType.ToDisplayName()} {LocationName} - {TimeOfDay.ToDisplayName()}".ToUpper();
 

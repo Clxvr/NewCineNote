@@ -49,9 +49,9 @@
     left: 0;
     bottom: 0;
     width: 4px;
-    background: #F59E0B;
     border-top-left-radius: 1rem;
     border-bottom-left-radius: 1rem;
+    transition: background 0.3s ease;
 }
 
 .scene-num-badge {
@@ -59,6 +59,120 @@
     color: #FFFFFF;
     font-size: 0.82rem;
     letter-spacing: 0.4px;
+}
+
+/* Статусы готовности сцены */
+.badge-status-draft {
+    background-color: #F1F5F9 !important;
+    color: #475569 !important;
+    border: 1px solid #CBD5E1 !important;
+    font-size: 0.76rem !important;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.badge-status-draft:hover {
+    background-color: #E2E8F0 !important;
+    color: #0F172A !important;
+    transform: scale(1.02);
+}
+
+.badge-status-inprogress {
+    background-color: #EFF6FF !important;
+    color: #1D4ED8 !important;
+    border: 1px solid #BFDBFE !important;
+    font-size: 0.76rem !important;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.badge-status-inprogress:hover {
+    background-color: #DBEAFE !important;
+    color: #1E40AF !important;
+    transform: scale(1.02);
+}
+
+.badge-status-ready {
+    background-color: #ECFDF5 !important;
+    color: #047857 !important;
+    border: 1px solid #A7F3D0 !important;
+    font-size: 0.76rem !important;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.badge-status-ready:hover {
+    background-color: #D1FAE5 !important;
+    color: #065F46 !important;
+    transform: scale(1.02);
+}
+
+/* Драматургические маркеры трёхактной структуры */
+.badge-dramatic-exposition {
+    background-color: #F5F3FF;
+    color: #6D28D9;
+    border: 1px solid #DDD6FE;
+    font-size: 0.76rem;
+    letter-spacing: 0.2px;
+}
+
+.badge-dramatic-midpoint {
+    background-color: #FFFBEB;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+    font-size: 0.76rem;
+    letter-spacing: 0.2px;
+}
+
+.badge-dramatic-climax {
+    background-color: #FEF2F2;
+    color: #B91C1C;
+    border: 1px solid #FECACA;
+    font-size: 0.76rem;
+    letter-spacing: 0.2px;
+}
+
+.badge-dramatic-resolution {
+    background-color: #ECFEFF;
+    color: #0E7490;
+    border: 1px solid #A5F3FC;
+    font-size: 0.76rem;
+    letter-spacing: 0.2px;
+}
+
+/* Кнопки фильтрации */
+.status-filter-btn {
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #4B5563;
+    background: #F3F4F6;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.status-filter-btn:hover {
+    background: #E5E7EB;
+    color: #111827;
+}
+
+.status-filter-btn.active {
+    background: #1F2937 !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+}
+
+.status-filter-btn.active .badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #FFFFFF !important;
+}
+
+.extra-small {
+    font-size: 0.74rem;
 }
 
 .delete-badge {

@@ -71,6 +71,20 @@ namespace CineNote.Services
             }
         }
 
+        /// <summary>
+        /// Быстрое изменение статуса сцены (Черновик / В работе / Готова).
+        /// </summary>
+        public async Task<bool> UpdateSceneStatusAsync(int sceneId, SceneStatus newStatus)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var scene = await context.Scenes.FindAsync(sceneId);
+            if (scene == null) return false;
+
+            scene.Status = newStatus;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<Scene?> GetSceneByIdAsync(int sceneId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -274,7 +288,9 @@ namespace CineNote.Services
                 LocationType = original.LocationType,
                 LocationName = original.LocationName,
                 TimeOfDay = original.TimeOfDay,
-                ActionDescription = original.ActionDescription
+                ActionDescription = original.ActionDescription,
+                Status = original.Status,
+                DramaticStructure = original.DramaticStructure
             };
 
             context.Scenes.Add(duplicate);

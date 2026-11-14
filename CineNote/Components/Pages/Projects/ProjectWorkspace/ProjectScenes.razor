@@ -11,7 +11,7 @@
         <img src="/images/icons/icon_timeline.png" alt="" width="42" height="42" style="object-fit: contain;" />
         <div>
             <h3 class="fw-bold text-dark mb-0">Сцены проекта</h3>
-            <p class="text-muted small mb-0">Поэпизодный план и интерактивный сценарный таймлайн</p>
+            <p class="text-muted small mb-0">Поэпизодный план, статусы готовности и драматургическая структура</p>
         </div>
     </div>
     <div class="d-flex gap-2">
@@ -44,29 +44,76 @@ else if (!scenes.Any())
 }
 else
 {
+    <!-- Панель статусов, прогресса и фильтрации -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <!-- Вкладки-фильтры -->
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn status-filter-btn @(currentFilter == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>
+                    Все <span class="badge rounded-pill bg-light text-dark ms-1">@scenes.Count</span>
+                </button>
+                <button class="btn status-filter-btn @(currentFilter == "draft" ? "active" : "")" @onclick='() => SetFilter("draft")'>
+                    <i class="bi bi-pencil-square me-1"></i>Черновики
+                    <span class="badge rounded-pill bg-light text-dark ms-1">@DraftCount</span>
+                </button>
+                <button class="btn status-filter-btn @(currentFilter == "inprogress" ? "active" : "")" @onclick='() => SetFilter("inprogress")'>
+                    <i class="bi bi-hourglass-split me-1 text-primary"></i>В работе
+                    <span class="badge rounded-pill bg-light text-dark ms-1">@InProgressCount</span>
+                </button>
+                <button class="btn status-filter-btn @(currentFilter == "ready" ? "active" : "")" @onclick='() => SetFilter("ready")'>
+                    <i class="bi bi-check-circle-fill me-1 text-success"></i>Готовы
+                    <span class="badge rounded-pill bg-light text-dark ms-1">@ReadyCount</span>
+                </button>
+                <button class="btn status-filter-btn @(currentFilter == "dramatic" ? "active" : "")" @onclick='() => SetFilter("dramatic")'>
+                    <i class="bi bi-diagram-3-fill me-1 text-danger"></i>Поворотные точки
+                    <span class="badge rounded-pill bg-light text-dark ms-1">@DramaticCount</span>
+                </button>
+            </div>
+
+            <!-- Индикатор готовности сценария -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end">
+                    <div class="small fw-bold text-dark">Готовность: @ReadinessPercent%</div>
+                    <div class="text-muted extra-small">@ReadyCount из @scenes.Count сцен завершено</div>
+                </div>
+                <div class="progress rounded-pill" style="width: 120px; height: 10px; background-color: #E5E7EB;">
+                    <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: @ReadinessPercent%;" aria-valuenow="@ReadinessPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сетка карточек сцен -->
     <div class="row g-3">
-        @foreach (var scene in scenes)
+        @foreach (var scene in FilteredScenes)
         {
             <div class="col-12 col-md-6 col-lg-4" @key="scene.Id">
                 <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "")"
-                     draggable="true"
+                     draggable="@(currentFilter == "all" ? "true" : "false")"
                      @ondragstart="() => OnDragStart(scene)"
                      @ondragend="OnDragEnd"
                      @ondragover:preventDefault="true"
                      @ondragenter="() => OnDragEnter(scene)"
                      @ondrop="() => OnDrop(scene)">
-                    <div class="card-accent-bar"></div>
+                    <div class="card-accent-bar" style="@GetAccentBarStyle(scene)"></div>
 
                     <div>
-                        <!-- Верхняя плашка: Drag Handle + Номер сцены + Кнопка удаления -->
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="drag-handle" title="Зажмите для перетаскивания">
+                        <!-- Верхняя плашка: Drag Handle + Номер сцены + Статус готовности + Кнопка удаления -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="drag-handle" title="@(currentFilter == "all" ? "Зажмите для перетаскивания" : "Перетаскивание доступно во вкладке 'Все'")">
                                     <i class="bi bi-grip-vertical fs-5"></i>
                                 </span>
                                 <span class="badge scene-num-badge rounded-pill px-3 py-1 fw-bold">
                                     СЦЕНА @scene.SceneNumber
                                 </span>
+
+                                <!-- Интерактивный бейдж статуса (клик меняет статус на лету) -->
+                                <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
+                                        title="Нажмите для смены статуса (Черновик → В работе → Готова)"
+                                        @onclick="() => CycleSceneStatus(scene)">
+                                    <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
+                                </button>
                             </div>
 
                             <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none"
@@ -75,6 +122,16 @@ else
                                 <i class="bi bi-trash3 me-1"></i>Удалить
                             </button>
                         </div>
+
+                        <!-- Маркер трёхактной структуры (если задан) -->
+                        @if (scene.DramaticStructure != DramaticStructure.None)
+                        {
+                            <div class="mb-2">
+                                <span class="badge @scene.DramaticStructure.ToBadgeClass() rounded-pill px-2 py-1 small fw-semibold">
+                                    <i class="bi @scene.DramaticStructure.ToIconClass() me-1"></i>@scene.DramaticStructure.ToDisplayName()
+                                </span>
+                            </div>
+                        }
 
                         <!-- Название сцены (редактируемое) -->
                         <div class="mb-2">
@@ -153,10 +210,26 @@ else
     private List<Scene> scenes = new();
     private bool isLoading = true;
 
+    private string currentFilter = "all";
     private Scene? draggedScene;
 
     private int? editingTitleSceneId;
     private string tempTitle = string.Empty;
+
+    private int DraftCount => scenes.Count(s => s.Status == SceneStatus.Draft);
+    private int InProgressCount => scenes.Count(s => s.Status == SceneStatus.InProgress);
+    private int ReadyCount => scenes.Count(s => s.Status == SceneStatus.Ready);
+    private int DramaticCount => scenes.Count(s => s.DramaticStructure != DramaticStructure.None);
+    private int ReadinessPercent => scenes.Any() ? (int)Math.Round((double)ReadyCount / scenes.Count * 100) : 0;
+
+    private IEnumerable<Scene> FilteredScenes => currentFilter switch
+    {
+        "draft" => scenes.Where(s => s.Status == SceneStatus.Draft),
+        "inprogress" => scenes.Where(s => s.Status == SceneStatus.InProgress),
+        "ready" => scenes.Where(s => s.Status == SceneStatus.Ready),
+        "dramatic" => scenes.Where(s => s.DramaticStructure != DramaticStructure.None),
+        _ => scenes
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -168,6 +241,11 @@ else
         isLoading = true;
         scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
         isLoading = false;
+    }
+
+    private void SetFilter(string filter)
+    {
+        currentFilter = filter;
     }
 
     private void OpenCreatePage()
@@ -187,11 +265,13 @@ else
 
     private void OnDragStart(Scene scene)
     {
+        if (currentFilter != "all") return;
         draggedScene = scene;
     }
 
     private void OnDragEnter(Scene targetScene)
     {
+        if (currentFilter != "all") return;
         if (draggedScene == null || draggedScene == targetScene)
             return;
 
@@ -231,6 +311,40 @@ else
     {
         draggedScene = null;
         StateHasChanged();
+    }
+
+    private async Task CycleSceneStatus(Scene scene)
+    {
+        var nextStatus = scene.Status switch
+        {
+            SceneStatus.Draft => SceneStatus.InProgress,
+            SceneStatus.InProgress => SceneStatus.Ready,
+            SceneStatus.Ready => SceneStatus.Draft,
+            _ => SceneStatus.Draft
+        };
+
+        scene.Status = nextStatus;
+        await SceneService.UpdateSceneStatusAsync(scene.Id, nextStatus);
+        StateHasChanged();
+    }
+
+    private string GetAccentBarStyle(Scene scene)
+    {
+        if (scene.DramaticStructure == DramaticStructure.Climax)
+            return "background: linear-gradient(180deg, #EF4444 0%, #DC2626 100%); width: 5px;";
+        if (scene.DramaticStructure == DramaticStructure.Midpoint)
+            return "background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%); width: 5px;";
+        if (scene.DramaticStructure == DramaticStructure.Exposition)
+            return "background: linear-gradient(180deg, #8B5CF6 0%, #7C3AED 100%); width: 5px;";
+        if (scene.DramaticStructure == DramaticStructure.Resolution)
+            return "background: linear-gradient(180deg, #06B6D4 0%, #0891B2 100%); width: 5px;";
+
+        return scene.Status switch
+        {
+            SceneStatus.Ready => "background: #10B981;",
+            SceneStatus.InProgress => "background: #3B82F6;",
+            _ => "background: #94A3B8;"
+        };
     }
 
     private async Task DuplicateScene(int sceneId)

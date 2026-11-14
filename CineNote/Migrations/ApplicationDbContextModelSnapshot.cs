@@ -194,6 +194,10 @@ namespace CineNote.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("action_description");
 
+                    b.Property<int>("DramaticStructure")
+                        .HasColumnType("int")
+                        .HasColumnName("dramatic_structure");
+
                     b.Property<string>("LocationName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -211,6 +215,10 @@ namespace CineNote.Migrations
                     b.Property<int>("SceneNumber")
                         .HasColumnType("int")
                         .HasColumnName("scene_number");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
 
                     b.Property<int>("TimeOfDay")
                         .HasColumnType("int")

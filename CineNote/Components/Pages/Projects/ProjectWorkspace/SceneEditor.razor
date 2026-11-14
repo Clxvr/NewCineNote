@@ -65,6 +65,31 @@
                             </InputSelect>
                         </div>
                     </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">
+                                <i class="bi bi-hourglass-split me-1 text-warning"></i>Статус готовности
+                            </label>
+                            <InputSelect @bind-Value="scene.Status" class="form-select border-0 shadow-sm rounded-3">
+                                @foreach (SceneStatus status in Enum.GetValues(typeof(SceneStatus)))
+                                {
+                                    <option value="@status">@status.ToDisplayName()</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">
+                                <i class="bi bi-diagram-3 me-1 text-warning"></i>Трёхактная структура
+                            </label>
+                            <InputSelect @bind-Value="scene.DramaticStructure" class="form-select border-0 shadow-sm rounded-3">
+                                @foreach (DramaticStructure marker in Enum.GetValues(typeof(DramaticStructure)))
+                                {
+                                    <option value="@marker">@marker.ToDisplayName()</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 bg-white flex-grow-1 d-flex flex-column overflow-hidden">
