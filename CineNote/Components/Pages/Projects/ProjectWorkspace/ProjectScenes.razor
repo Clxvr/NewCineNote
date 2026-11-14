@@ -178,13 +178,17 @@ else
                     <!-- Содержимое акта -->
                     @if (!isCollapsed)
                     {
-                        <div class="act-body p-4 pt-2 border-top">
+                        <div class="act-body p-4 pt-2 border-top @(dropTargetAct == act ? "act-drop-active" : "")"
+                             @ondragover:preventDefault="true"
+                             @ondragenter="() => OnActDragEnter(act)"
+                             @ondragleave="() => OnActDragLeave(act)"
+                             @ondrop="() => OnDropOnAct(act)">
                             @if (!actScenes.Any())
                             {
                                 <div class="text-center py-4 text-muted small bg-light rounded-3 my-2 border">
-                                    <i class="bi bi-film me-1"></i>В этом акте пока нет сцен.
+                                    <i class="bi bi-film me-1"></i>В этом акте пока нет сцен. Перетащите сюда сцену или
                                     <button class="btn btn-link btn-sm text-warning p-0 ms-1 fw-semibold text-decoration-none" @onclick="() => OpenCreatePage(act)">
-                                        Добавить сцену в @act.ToShortName()
+                                        добавьте новую
                                     </button>
                                 </div>
                             }
@@ -238,6 +242,8 @@ else
 
     private string currentFilter = "all";
     private Scene? draggedScene;
+    private Scene? dropTargetScene;
+    private MovieAct? dropTargetAct;
 
     private int? editingTitleSceneId;
     private string tempTitle = string.Empty;
@@ -338,37 +344,24 @@ else
 
     private void OnDragStart(Scene scene)
     {
-        if (currentFilter != "all") return;
         draggedScene = scene;
+        dropTargetScene = null;
+        dropTargetAct = null;
     }
 
     private void OnDragEnter(Scene targetScene)
     {
-        if (currentFilter != "all") return;
-        if (draggedScene == null || draggedScene == targetScene)
+        if (draggedScene == null || draggedScene.Id == targetScene.Id)
             return;
 
-        int originalIndex = scenes.IndexOf(draggedScene);
-        int targetIndex = scenes.IndexOf(targetScene);
+        dropTargetScene = targetScene;
+    }
 
-        if (originalIndex != -1 && targetIndex != -1)
+    private void OnDragLeave(Scene targetScene)
+    {
+        if (dropTargetScene?.Id == targetScene.Id)
         {
-            scenes.RemoveAt(originalIndex);
-            scenes.Insert(targetIndex, draggedScene);
-
-            // Если перетащили сцену в другой акт, автоматически актуализируем Act сцены
-            if (draggedScene.Act != targetScene.Act)
-            {
-                draggedScene.Act = targetScene.Act;
-            }
-
-            // Автоматически пересчитываем номера сцен в интерфейсе на лету (1, 2, 3...)
-            for (int i = 0; i < scenes.Count; i++)
-            {
-                scenes[i].SceneNumber = i + 1;
-            }
-
-            StateHasChanged();
+            dropTargetScene = null;
         }
     }
 
@@ -377,21 +370,122 @@ else
         if (draggedScene == null)
         {
             draggedScene = null;
+            dropTargetScene = null;
+            dropTargetAct = null;
             return;
         }
 
-        var orderedIds = scenes.Select(s => s.Id).ToList();
-        await SceneService.UpdateScenesOrderAsync(orderedIds, ProjectId);
+        if (draggedScene.Id != targetScene.Id)
+        {
+            int originalIndex = scenes.FindIndex(s => s.Id == draggedScene.Id);
+            int targetIndex = scenes.FindIndex(s => s.Id == targetScene.Id);
 
-        // Сохраняем обновленный акт в БД
-        await SceneService.UpdateSceneActAsync(draggedScene.Id, draggedScene.Act);
+            if (originalIndex != -1 && targetIndex != -1)
+            {
+                var movedItem = scenes[originalIndex];
+                scenes.RemoveAt(originalIndex);
+                scenes.Insert(targetIndex, movedItem);
+
+                // Если сцена перемещена в другой акт, обновляем Act
+                if (movedItem.Act != targetScene.Act)
+                {
+                    movedItem.Act = targetScene.Act;
+                    await SceneService.UpdateSceneActAsync(movedItem.Id, targetScene.Act);
+                }
+
+                // Автоматически пересчитываем сквозную нумерацию 1, 2, 3...
+                for (int i = 0; i < scenes.Count; i++)
+                {
+                    scenes[i].SceneNumber = i + 1;
+                }
+
+                var orderedIds = scenes.Select(s => s.Id).ToList();
+                await SceneService.UpdateScenesOrderAsync(orderedIds, ProjectId);
+            }
+        }
 
         draggedScene = null;
+        dropTargetScene = null;
+        dropTargetAct = null;
+        StateHasChanged();
+    }
+
+    private void OnActDragEnter(MovieAct act)
+    {
+        if (draggedScene == null) return;
+        dropTargetAct = act;
+    }
+
+    private void OnActDragLeave(MovieAct act)
+    {
+        if (dropTargetAct == act)
+        {
+            dropTargetAct = null;
+        }
+    }
+
+    private async Task OnDropOnAct(MovieAct targetAct)
+    {
+        if (draggedScene == null)
+        {
+            draggedScene = null;
+            dropTargetScene = null;
+            dropTargetAct = null;
+            return;
+        }
+
+        if (draggedScene.Act != targetAct)
+        {
+            draggedScene.Act = targetAct;
+            await SceneService.UpdateSceneActAsync(draggedScene.Id, targetAct);
+
+            int originalIndex = scenes.FindIndex(s => s.Id == draggedScene.Id);
+            if (originalIndex != -1)
+            {
+                var movedItem = scenes[originalIndex];
+                scenes.RemoveAt(originalIndex);
+
+                int lastIndexInAct = scenes.FindLastIndex(s => s.Act == targetAct);
+                if (lastIndexInAct != -1)
+                {
+                    scenes.Insert(lastIndexInAct + 1, movedItem);
+                }
+                else
+                {
+                    if (targetAct == MovieAct.Act1)
+                        scenes.Insert(0, movedItem);
+                    else if (targetAct == MovieAct.Act2)
+                    {
+                        int lastAct1 = scenes.FindLastIndex(s => s.Act == MovieAct.Act1);
+                        scenes.Insert(lastAct1 != -1 ? lastAct1 + 1 : 0, movedItem);
+                    }
+                    else
+                    {
+                        scenes.Add(movedItem);
+                    }
+                }
+
+                for (int i = 0; i < scenes.Count; i++)
+                {
+                    scenes[i].SceneNumber = i + 1;
+                }
+
+                var orderedIds = scenes.Select(s => s.Id).ToList();
+                await SceneService.UpdateScenesOrderAsync(orderedIds, ProjectId);
+            }
+        }
+
+        draggedScene = null;
+        dropTargetScene = null;
+        dropTargetAct = null;
+        StateHasChanged();
     }
 
     private void OnDragEnd()
     {
         draggedScene = null;
+        dropTargetScene = null;
+        dropTargetAct = null;
         StateHasChanged();
     }
 
@@ -495,12 +589,13 @@ else
     private RenderFragment RenderSceneCard(Scene scene) => __builder =>
     {
         <div class="col-12 col-md-6 col-lg-4" @key="scene.Id">
-            <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "")"
-                 draggable="@(currentFilter == "all" ? "true" : "false")"
+            <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene?.Id == scene.Id ? "dragging" : "") @(dropTargetScene?.Id == scene.Id ? "drop-target" : "")"
+                 draggable="true"
                  @ondragstart="() => OnDragStart(scene)"
                  @ondragend="OnDragEnd"
                  @ondragover:preventDefault="true"
                  @ondragenter="() => OnDragEnter(scene)"
+                 @ondragleave="() => OnDragLeave(scene)"
                  @ondrop="() => OnDrop(scene)">
                 <div class="card-accent-bar" style="@GetAccentBarStyle(scene)"></div>
 
@@ -508,7 +603,7 @@ else
                     <!-- Верхняя плашка: Drag Handle + Номер сцены + Акт (в плоском режиме) + Статус готовности + Кнопка удаления -->
                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="drag-handle" title="@(currentFilter == "all" ? "Зажмите для перетаскивания" : "Перетаскивание доступно во вкладке 'Все'")">
+                            <span class="drag-handle" title="Зажмите для перетаскивания">
                                 <i class="bi bi-grip-vertical fs-5"></i>
                             </span>
                             <span class="badge scene-num-badge rounded-pill px-3 py-1 fw-bold">
@@ -525,13 +620,17 @@ else
                             <!-- Интерактивный бейдж статуса (клик меняет статус на лету) -->
                             <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
                                     title="Нажмите для смены статуса (Черновик → В работе → Готова)"
-                                    @onclick="() => CycleSceneStatus(scene)">
+                                    @onclick="() => CycleSceneStatus(scene)"
+                                    @onclick:stopPropagation="true"
+                                    draggable="false">
                                 <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
                             </button>
                         </div>
 
                         <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none"
                                 @onclick="async () => await DeleteScene(scene.Id)"
+                                @onclick:stopPropagation="true"
+                                draggable="false"
                                 title="Удалить сцену">
                             <i class="bi bi-trash3 me-1"></i>Удалить
                         </button>
@@ -565,7 +664,9 @@ else
                                 </h5>
                                 <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none edit-title-btn"
                                         title="Быстро изменить название"
-                                        @onclick="() => StartInlineTitle(scene)">
+                                        @onclick="() => StartInlineTitle(scene)"
+                                        @onclick:stopPropagation="true"
+                                        draggable="false">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                             </div>
@@ -595,20 +696,26 @@ else
                     <div class="d-flex align-items-center gap-2">
                         <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
                                 title="Вставить новую сцену сразу после этой"
-                                @onclick="() => InsertSceneAfter(scene.SceneNumber)">
+                                @onclick="() => InsertSceneAfter(scene.SceneNumber)"
+                                @onclick:stopPropagation="true"
+                                draggable="false">
                             <i class="bi bi-plus-circle me-1 text-warning"></i>
                             <span>Следующая</span>
                         </button>
                         <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
                                 title="Клонировать сцену (создать дубликат)"
-                                @onclick="() => DuplicateScene(scene.Id)">
+                                @onclick="() => DuplicateScene(scene.Id)"
+                                @onclick:stopPropagation="true"
+                                draggable="false">
                             <i class="bi bi-copy me-1 text-primary"></i>
                             <span>Клонировать</span>
                         </button>
                     </div>
 
                     <button class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-semibold text-dark shadow-sm open-scene-btn"
-                            @onclick="() => OpenEditPage(scene)">
+                            @onclick="() => OpenEditPage(scene)"
+                            @onclick:stopPropagation="true"
+                            draggable="false">
                         <i class="bi bi-folder2-open me-1"></i> Открыть
                     </button>
                 </div>

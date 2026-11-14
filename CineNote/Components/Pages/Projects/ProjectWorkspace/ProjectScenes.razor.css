@@ -69,9 +69,23 @@
 
 .scene-card.dragging {
     opacity: 0.35;
-    border: 2px dashed #F59E0B !important;
+    border: 2px dashed #9CA3AF !important;
     box-shadow: none !important;
     transform: scale(0.98);
+}
+
+.scene-card.drop-target {
+    border: 2px dashed #F59E0B !important;
+    background-color: #FFFDF5 !important;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25) !important;
+    transform: translateY(-4px) scale(1.02);
+}
+
+.act-body.act-drop-active {
+    background-color: #FFFBEB !important;
+    outline: 2px dashed #F59E0B;
+    outline-offset: -6px;
+    border-radius: 0 0 1rem 1rem;
 }
 
 .scene-card:hover {
