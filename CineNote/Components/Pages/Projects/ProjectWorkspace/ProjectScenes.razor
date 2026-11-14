@@ -193,6 +193,7 @@ else
                                         <div class="col-12 col-md-6 col-lg-4">
                                             <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "") @(dropTargetScene == scene && draggedScene != scene ? "drop-target" : "")"
                                                  draggable="true"
+                                                 @onclick="() => OpenEditPage(scene)"
                                                  @ondragstart="(e) => OnDragStart(e, scene)"
                                                  @ondragend="OnDragEnd"
                                                  @ondragenter="() => OnDragEnter(scene)"
@@ -232,14 +233,6 @@ else
                                                                 <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
                                                             </button>
                                                         </div>
-
-                                                        <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none"
-                                                                @onclick="async () => await DeleteScene(scene.Id)"
-                                                                @onclick:stopPropagation="true"
-                                                                draggable="false"
-                                                                title="Удалить сцену">
-                                                            <i class="bi bi-trash3 me-1"></i>Удалить
-                                                        </button>
                                                     </div>
 
                                                     @if (scene.DramaticStructure != DramaticStructure.None)
@@ -313,11 +306,13 @@ else
                                                         </button>
                                                     </div>
 
-                                                    <button class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-semibold text-dark shadow-sm open-scene-btn"
-                                                            @onclick="() => OpenEditPage(scene)"
+                                                    <button class="btn btn-action-delete btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center shadow-none"
+                                                            @onclick="async () => await DeleteScene(scene.Id)"
                                                             @onclick:stopPropagation="true"
-                                                            draggable="false">
-                                                        <i class="bi bi-folder2-open me-1"></i> Открыть
+                                                            draggable="false"
+                                                            title="Удалить сцену">
+                                                        <i class="bi bi-trash3 me-1"></i>
+                                                        <span>Удалить</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -349,6 +344,7 @@ else
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "") @(dropTargetScene == scene && draggedScene != scene ? "drop-target" : "")"
                          draggable="true"
+                         @onclick="() => OpenEditPage(scene)"
                          @ondragstart="(e) => OnDragStart(e, scene)"
                          @ondragend="OnDragEnd"
                          @ondragenter="() => OnDragEnter(scene)"
@@ -388,14 +384,6 @@ else
                                         <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
                                     </button>
                                 </div>
-
-                                <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none"
-                                        @onclick="async () => await DeleteScene(scene.Id)"
-                                        @onclick:stopPropagation="true"
-                                        draggable="false"
-                                        title="Удалить сцену">
-                                    <i class="bi bi-trash3 me-1"></i>Удалить
-                                </button>
                             </div>
 
                             @if (scene.DramaticStructure != DramaticStructure.None)
@@ -469,11 +457,13 @@ else
                                 </button>
                             </div>
 
-                            <button class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-semibold text-dark shadow-sm open-scene-btn"
-                                    @onclick="() => OpenEditPage(scene)"
+                            <button class="btn btn-action-delete btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center shadow-none"
+                                    @onclick="async () => await DeleteScene(scene.Id)"
                                     @onclick:stopPropagation="true"
-                                    draggable="false">
-                                <i class="bi bi-folder2-open me-1"></i> Открыть
+                                    draggable="false"
+                                    title="Удалить сцену">
+                                <i class="bi bi-trash3 me-1"></i>
+                                <span>Удалить</span>
                             </button>
                         </div>
                     </div>
@@ -591,6 +581,7 @@ else
 
     private void OpenEditPage(Scene scene)
     {
+        if (draggedScene != null) return;
         Navigation.NavigateTo($"/projects/{ProjectId}/scenes/{scene.Id}/edit");
     }
 

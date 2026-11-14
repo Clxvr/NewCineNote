@@ -57,6 +57,7 @@
     user-select: none;
     position: relative;
     border-radius: 1rem !important;
+    cursor: pointer;
 }
 
 .scene-card[draggable="true"] {
@@ -327,6 +328,23 @@
     color: #92400E;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.btn-action-delete {
+    background-color: #FFF5F5;
+    border: 1px solid #FED7D7;
+    color: #DC2626;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-action-delete:hover {
+    background-color: #FEE2E2;
+    border-color: #FCA5A5;
+    color: #991B1B;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
 }
 
 .open-scene-btn {
