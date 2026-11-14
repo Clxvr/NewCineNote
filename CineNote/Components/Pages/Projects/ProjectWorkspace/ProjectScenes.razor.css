@@ -81,6 +81,10 @@
     transform: translateY(-4px) scale(1.02);
 }
 
+.scene-card.drop-target * {
+    pointer-events: none;
+}
+
 .act-drag-hoverable {
     border: 2px dashed #CBD5E1 !important;
 }

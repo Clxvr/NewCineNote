@@ -172,7 +172,11 @@ else
                         <div class="act-body p-4 pt-2 border-top">
                             @if (!actScenes.Any())
                             {
-                                <div class="text-center py-4 text-muted small bg-light rounded-3 my-2 border act-empty-dropzone">
+                                <div class="text-center py-4 text-muted small bg-light rounded-3 my-2 border act-empty-dropzone"
+                                     @ondragover="OnDragOver"
+                                     @ondragover:preventDefault="true"
+                                     @ondrop="() => OnDropOnAct(act)"
+                                     @ondrop:stopPropagation="true">
                                     <i class="bi bi-arrow-down-circle text-warning fs-3 d-block mb-1"></i>
                                     <span class="fw-semibold">В этом акте пока нет сцен.</span><br />
                                     <span>Перетащите сюда карточку сцены из другого акта или</span>
@@ -187,10 +191,12 @@ else
                                     @foreach (var scene in actScenes)
                                     {
                                         <div class="col-12 col-md-6 col-lg-4">
-                                            <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "")"
+                                            <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "") @(dropTargetScene == scene && draggedScene != scene ? "drop-target" : "")"
                                                  draggable="true"
                                                  @ondragstart="(e) => OnDragStart(e, scene)"
                                                  @ondragend="OnDragEnd"
+                                                 @ondragenter="() => OnDragEnter(scene)"
+                                                 @ondragleave="() => OnDragLeave(scene)"
                                                  @ondragover="OnDragOver"
                                                  @ondragover:preventDefault="true"
                                                  @ondrop="() => OnDrop(scene)"
@@ -341,10 +347,12 @@ else
             @foreach (var scene in FilteredScenes)
             {
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "")"
+                    <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "") @(dropTargetScene == scene && draggedScene != scene ? "drop-target" : "")"
                          draggable="true"
                          @ondragstart="(e) => OnDragStart(e, scene)"
                          @ondragend="OnDragEnd"
+                         @ondragenter="() => OnDragEnter(scene)"
+                         @ondragleave="() => OnDragLeave(scene)"
                          @ondragover="OnDragOver"
                          @ondragover:preventDefault="true"
                          @ondrop="() => OnDrop(scene)"
@@ -487,6 +495,7 @@ else
 
     private string currentFilter = "all";
     private Scene? draggedScene;
+    private Scene? dropTargetScene;
 
     private int? editingTitleSceneId;
     private string tempTitle = string.Empty;
@@ -588,10 +597,27 @@ else
     private void OnDragStart(DragEventArgs e, Scene scene)
     {
         draggedScene = scene;
+        dropTargetScene = null;
         if (e.DataTransfer != null)
         {
             e.DataTransfer.EffectAllowed = "move";
             e.DataTransfer.DropEffect = "move";
+        }
+    }
+
+    private void OnDragEnter(Scene target)
+    {
+        if (draggedScene != null && draggedScene.Id != target.Id)
+        {
+            dropTargetScene = target;
+        }
+    }
+
+    private void OnDragLeave(Scene target)
+    {
+        if (dropTargetScene?.Id == target.Id)
+        {
+            dropTargetScene = null;
         }
     }
 
@@ -607,6 +633,7 @@ else
     {
         var item = draggedScene;
         draggedScene = null;
+        dropTargetScene = null;
 
         if (item == null || item.Id == targetScene.Id)
         {
@@ -646,6 +673,7 @@ else
     {
         var item = draggedScene;
         draggedScene = null;
+        dropTargetScene = null;
 
         if (item == null || item.Act == targetAct)
         {
@@ -661,6 +689,7 @@ else
     private void OnDragEnd()
     {
         draggedScene = null;
+        dropTargetScene = null;
         StateHasChanged();
     }
 
