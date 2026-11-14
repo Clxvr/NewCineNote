@@ -189,6 +189,10 @@ namespace CineNote.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Act")
+                        .HasColumnType("int")
+                        .HasColumnName("act");
+
                     b.Property<string>("ActionDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")

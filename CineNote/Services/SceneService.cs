@@ -85,6 +85,20 @@ namespace CineNote.Services
             return true;
         }
 
+        /// <summary>
+        /// Быстрое изменение акта сцены (Акт I, Акт II, Акт III).
+        /// </summary>
+        public async Task<bool> UpdateSceneActAsync(int sceneId, MovieAct newAct)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            var scene = await context.Scenes.FindAsync(sceneId);
+            if (scene == null) return false;
+
+            scene.Act = newAct;
+            await context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<Scene?> GetSceneByIdAsync(int sceneId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -289,6 +303,7 @@ namespace CineNote.Services
                 LocationName = original.LocationName,
                 TimeOfDay = original.TimeOfDay,
                 ActionDescription = original.ActionDescription,
+                Act = original.Act,
                 Status = original.Status,
                 DramaticStructure = original.DramaticStructure
             };

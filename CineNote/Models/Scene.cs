@@ -37,6 +37,9 @@ namespace CineNote.Models
         [Column("action_description")]
         public string ActionDescription { get; set; } = string.Empty;
 
+        [Column("act")]
+        public MovieAct Act { get; set; } = MovieAct.Act1;
+
         [Column("status")]
         public SceneStatus Status { get; set; } = SceneStatus.Draft;
 

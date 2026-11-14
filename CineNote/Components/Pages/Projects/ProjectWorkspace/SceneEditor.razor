@@ -67,7 +67,18 @@
                     </div>
 
                     <div class="row g-3 mt-1">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">
+                                <i class="bi bi-folder2 me-1 text-warning"></i>Акт сценария
+                            </label>
+                            <InputSelect @bind-Value="scene.Act" class="form-select border-0 shadow-sm rounded-3">
+                                @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
+                                {
+                                    <option value="@act">@act.ToDisplayName()</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold small text-dark">
                                 <i class="bi bi-hourglass-split me-1 text-warning"></i>Статус готовности
                             </label>
@@ -78,9 +89,9 @@
                                 }
                             </InputSelect>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold small text-dark">
-                                <i class="bi bi-diagram-3 me-1 text-warning"></i>Трёхактная структура
+                                <i class="bi bi-diagram-3 me-1 text-warning"></i>Поворотная точка
                             </label>
                             <InputSelect @bind-Value="scene.DramaticStructure" class="form-select border-0 shadow-sm rounded-3">
                                 @foreach (DramaticStructure marker in Enum.GetValues(typeof(DramaticStructure)))
@@ -140,6 +151,7 @@
     [Parameter] public int ProjectId { get; set; }
     [Parameter] public int? SceneId { get; set; }
     [SupplyParameterFromQuery(Name = "after")] public int? insertAfterNumber { get; set; }
+    [SupplyParameterFromQuery(Name = "act")] public string? targetAct { get; set; }
 
     private Scene scene = new();
     private List<Character> allProjectCharacters = new();
@@ -165,11 +177,18 @@
         }
         else
         {
+            var initialAct = MovieAct.Act1;
+            if (!string.IsNullOrEmpty(targetAct) && Enum.TryParse<MovieAct>(targetAct, true, out var parsedAct))
+            {
+                initialAct = parsedAct;
+            }
+
             scene = new Scene
             {
                 MovieProjectId = ProjectId,
                 LocationType = LocationType.INT,
-                TimeOfDay = TimeOfDay.Day
+                TimeOfDay = TimeOfDay.Day,
+                Act = initialAct
             };
         }
 
