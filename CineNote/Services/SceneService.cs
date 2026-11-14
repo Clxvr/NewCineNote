@@ -25,6 +25,7 @@ namespace CineNote.Services
             scene.SceneNumber = maxOrderNumber + 1;
             context.Scenes.Add(scene);
             await context.SaveChangesAsync();
+            await RenumberScenesAsync(scene.MovieProjectId);
             return scene;
         }
 
@@ -35,7 +36,8 @@ namespace CineNote.Services
             return await context.Scenes
                 .Include(s => s.SceneCharacters).ThenInclude(sc => sc.Character)
                 .Where(s => s.MovieProjectId == projectId)
-                .OrderBy(s => s.SceneNumber)
+                .OrderBy(s => s.Act)
+                .ThenBy(s => s.SceneNumber)
                 .ToListAsync();
         }
 
@@ -44,6 +46,7 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
             context.Scenes.Update(scene);
             await context.SaveChangesAsync();
+            await RenumberScenesAsync(scene.MovieProjectId);
         }
 
         public async Task DeleteSceneAsync(int id)
@@ -66,14 +69,10 @@ namespace CineNote.Services
                 context.Scenes.Remove(scene);
                 await context.SaveChangesAsync();
 
-                // Гарантия строгой непрерывной нумерации (1, 2, 3...)
                 await RenumberScenesAsync(projectId);
             }
         }
 
-        /// <summary>
-        /// Быстрое изменение статуса сцены (Черновик / В работе / Готова).
-        /// </summary>
         public async Task<bool> UpdateSceneStatusAsync(int sceneId, SceneStatus newStatus)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -85,16 +84,73 @@ namespace CineNote.Services
             return true;
         }
 
-        /// <summary>
-        /// Быстрое изменение акта сцены (Акт I, Акт II, Акт III).
-        /// </summary>
         public async Task<bool> UpdateSceneActAsync(int sceneId, MovieAct newAct)
         {
-            using var context = await _contextFactory.CreateDbContextAsync();
-            var scene = await context.Scenes.FindAsync(sceneId);
-            if (scene == null) return false;
+            return await MoveSceneToActAsync(sceneId, newAct);
+        }
 
-            scene.Act = newAct;
+        public async Task<bool> MoveSceneToActAsync(int sceneId, MovieAct targetAct, int? insertBeforeSceneId = null)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var projectId = await context.Scenes
+                .Where(x => x.Id == sceneId)
+                .Select(x => x.MovieProjectId)
+                .FirstOrDefaultAsync();
+
+            if (projectId == 0) return false;
+
+            var allScenes = await context.Scenes
+                .Where(s => s.MovieProjectId == projectId)
+                .OrderBy(s => s.Act)
+                .ThenBy(s => s.SceneNumber)
+                .ThenBy(s => s.Id)
+                .ToListAsync();
+
+            var movingScene = allScenes.FirstOrDefault(s => s.Id == sceneId);
+            if (movingScene == null) return false;
+
+            allScenes.Remove(movingScene);
+            movingScene.Act = targetAct;
+
+            if (insertBeforeSceneId.HasValue)
+            {
+                int targetIndex = allScenes.FindIndex(s => s.Id == insertBeforeSceneId.Value);
+                if (targetIndex != -1)
+                {
+                    allScenes.Insert(targetIndex, movingScene);
+                }
+                else
+                {
+                    allScenes.Add(movingScene);
+                }
+            }
+            else
+            {
+                int lastIndexInAct = allScenes.FindLastIndex(s => s.Act == targetAct);
+                if (lastIndexInAct != -1)
+                {
+                    allScenes.Insert(lastIndexInAct + 1, movingScene);
+                }
+                else
+                {
+                    int insertIndex = allScenes.FindIndex(s => s.Act > targetAct);
+                    if (insertIndex != -1)
+                        allScenes.Insert(insertIndex, movingScene);
+                    else
+                        allScenes.Add(movingScene);
+                }
+            }
+
+            var sortedFinal = allScenes
+                .OrderBy(s => s.Act)
+                .ToList();
+
+            for (int i = 0; i < sortedFinal.Count; i++)
+            {
+                sortedFinal[i].SceneNumber = i + 1;
+            }
+
             await context.SaveChangesAsync();
             return true;
         }
@@ -159,12 +215,9 @@ namespace CineNote.Services
             }
 
             await context.SaveChangesAsync();
+            await RenumberScenesAsync(scene.MovieProjectId);
         }
 
-        /// <summary>
-        /// Обновляет порядок сцен по переданному списку ID (Drag-and-Drop)
-        /// со сквозным пересчетом номеров сцен 1, 2, 3...
-        /// </summary>
         public async Task UpdateScenesOrderAsync(List<int> orderedSceneIds, int projectId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -183,11 +236,9 @@ namespace CineNote.Services
             }
 
             await context.SaveChangesAsync();
+            await RenumberScenesAsync(projectId);
         }
 
-        /// <summary>
-        /// Перемещение сцены Вверх (к началу фильма).
-        /// </summary>
         public async Task<bool> MoveSceneUpAsync(int sceneId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -195,13 +246,12 @@ namespace CineNote.Services
             var currentScene = await context.Scenes.FindAsync(sceneId);
             if (currentScene == null) return false;
 
-            // Находим предыдущую сцену
             var prevScene = await context.Scenes
-                .Where(s => s.MovieProjectId == currentScene.MovieProjectId && s.SceneNumber < currentScene.SceneNumber)
+                .Where(s => s.MovieProjectId == currentScene.MovieProjectId && s.Act == currentScene.Act && s.SceneNumber < currentScene.SceneNumber)
                 .OrderByDescending(s => s.SceneNumber)
                 .FirstOrDefaultAsync();
 
-            if (prevScene == null) return false; // Уже первая
+            if (prevScene == null) return false;
 
             int temp = currentScene.SceneNumber;
             currentScene.SceneNumber = prevScene.SceneNumber;
@@ -212,9 +262,6 @@ namespace CineNote.Services
             return true;
         }
 
-        /// <summary>
-        /// Перемещение сцены Вниз (к концу фильма).
-        /// </summary>
         public async Task<bool> MoveSceneDownAsync(int sceneId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -222,13 +269,12 @@ namespace CineNote.Services
             var currentScene = await context.Scenes.FindAsync(sceneId);
             if (currentScene == null) return false;
 
-            // Находим следующую сцену
             var nextScene = await context.Scenes
-                .Where(s => s.MovieProjectId == currentScene.MovieProjectId && s.SceneNumber > currentScene.SceneNumber)
+                .Where(s => s.MovieProjectId == currentScene.MovieProjectId && s.Act == currentScene.Act && s.SceneNumber > currentScene.SceneNumber)
                 .OrderBy(s => s.SceneNumber)
                 .FirstOrDefaultAsync();
 
-            if (nextScene == null) return false; // Уже последняя
+            if (nextScene == null) return false;
 
             int temp = currentScene.SceneNumber;
             currentScene.SceneNumber = nextScene.SceneNumber;
@@ -239,14 +285,10 @@ namespace CineNote.Services
             return true;
         }
 
-        /// <summary>
-        /// Вставка новой сцены строго "после сцены №N" со сквозным сдвигом всех последующих сцен.
-        /// </summary>
         public async Task<Scene> InsertSceneAfterAsync(int projectId, int afterSceneNumber, Scene newScene)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
-            // Сдвигаем все сцены, у которых номер > afterSceneNumber на +1
             var subsequentScenes = await context.Scenes
                 .Where(s => s.MovieProjectId == projectId && s.SceneNumber > afterSceneNumber)
                 .OrderByDescending(s => s.SceneNumber)
@@ -266,10 +308,6 @@ namespace CineNote.Services
             return newScene;
         }
 
-        /// <summary>
-        /// Дублирование (клонирование) сцены со всеми параметрами, описанием и связями персонажей.
-        /// Размещается сразу после исходной сцены.
-        /// </summary>
         public async Task<Scene?> DuplicateSceneAsync(int sceneId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
@@ -283,7 +321,6 @@ namespace CineNote.Services
             int projectId = original.MovieProjectId;
             int insertAfter = original.SceneNumber;
 
-            // Сдвигаем последующие сцены
             var subsequentScenes = await context.Scenes
                 .Where(s => s.MovieProjectId == projectId && s.SceneNumber > insertAfter)
                 .OrderByDescending(s => s.SceneNumber)
@@ -311,7 +348,6 @@ namespace CineNote.Services
             context.Scenes.Add(duplicate);
             await context.SaveChangesAsync();
 
-            // Копируем привязки персонажей
             if (original.SceneCharacters.Any())
             {
                 foreach (var sc in original.SceneCharacters)
@@ -329,16 +365,14 @@ namespace CineNote.Services
             return duplicate;
         }
 
-        /// <summary>
-        /// Гарантирует строго непрерывную нумерацию сцен (1, 2, 3...) без пропусков и дубликатов.
-        /// </summary>
         public async Task RenumberScenesAsync(int projectId)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
             var scenes = await context.Scenes
                 .Where(s => s.MovieProjectId == projectId)
-                .OrderBy(s => s.SceneNumber)
+                .OrderBy(s => s.Act)
+                .ThenBy(s => s.SceneNumber)
                 .ThenBy(s => s.Id)
                 .ToListAsync();
 

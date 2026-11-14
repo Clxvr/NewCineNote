@@ -184,12 +184,12 @@
             }
 
             scene = new Scene
-            {
-                MovieProjectId = ProjectId,
-                LocationType = LocationType.INT,
-                TimeOfDay = TimeOfDay.Day,
-                Act = initialAct
-            };
+                {
+                    MovieProjectId = ProjectId,
+                    LocationType = LocationType.INT,
+                    TimeOfDay = TimeOfDay.Day,
+                    Act = initialAct
+                };
         }
 
         isLoading = false;
@@ -218,7 +218,6 @@
 
         if (scene.Id == 0 && insertAfterNumber.HasValue)
         {
-            // Вставка строго после сцены №N
             var created = await SceneService.InsertSceneAfterAsync(ProjectId, insertAfterNumber.Value, scene);
             if (selectedCharacterIds.Any())
             {

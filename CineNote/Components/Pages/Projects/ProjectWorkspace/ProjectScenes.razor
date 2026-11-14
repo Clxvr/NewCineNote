@@ -6,7 +6,6 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<!-- Заголовок страницы и переключатель режимов -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
         <img src="/images/icons/icon_timeline.png" alt="" width="42" height="42" style="object-fit: contain;" />
@@ -17,7 +16,6 @@
     </div>
 
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- Переключатель режима: Папки по актам / Сплошной таймлайн -->
         <div class="btn-group btn-group-sm p-1 bg-light border rounded-pill shadow-none" role="group">
             <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold view-switch-btn @(isActView ? "active-view" : "text-muted")"
                     @onclick="() => isActView = true"
@@ -60,10 +58,8 @@ else if (!scenes.Any())
 }
 else
 {
-    <!-- Панель статусов, прогресса и фильтрации -->
     <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <!-- Вкладки-фильтры -->
             <div class="d-flex flex-wrap gap-2">
                 <button class="btn status-filter-btn @(currentFilter == "all" ? "active" : "")" @onclick='() => SetFilter("all")'>
                     Все <span class="badge rounded-pill bg-light text-dark ms-1">@scenes.Count</span>
@@ -86,7 +82,6 @@ else
                 </button>
             </div>
 
-            <!-- Индикатор готовности сценария и управление актами -->
             <div class="d-flex align-items-center gap-3">
                 @if (isActView)
                 {
@@ -109,7 +104,6 @@ else
 
     @if (isActView)
     {
-        <!-- РЕЖИМ «ПО АКТАМ»: Сворачиваемые секции-папки для каждого акта -->
         <div class="d-flex flex-column gap-4">
             @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
             {
@@ -123,8 +117,8 @@ else
                 <div class="act-card rounded-4 border-0 shadow-sm bg-white overflow-hidden @(draggedScene != null && draggedScene.Act != act ? "act-drop-target-active" : "")"
                      @ondragover="OnDragOver"
                      @ondragover:preventDefault="true"
-                     @ondrop="() => OnDropOnAct(act)">
-                    <!-- Заголовок акта -->
+                     @ondrop="() => OnDropOnAct(act)"
+                     @ondrop:stopPropagation="true">
                     <div class="act-header p-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2 cursor-pointer"
                          @onclick="() => ToggleAct(act)">
                         <div class="d-flex align-items-center gap-3">
@@ -143,9 +137,7 @@ else
                             </div>
                         </div>
 
-                        <!-- Правая часть: Аналитика готовности, ключевые маркеры и кнопки -->
                         <div class="d-flex align-items-center gap-3" @onclick:stopPropagation="true">
-                            <!-- Драматургические маркеры внутри акта -->
                             <div class="d-none d-md-flex align-items-center gap-1">
                                 @foreach (var m in GetActMarkers(act))
                                 {
@@ -155,21 +147,18 @@ else
                                 }
                             </div>
 
-                            <!-- Прогресс готовности акта -->
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge @(percentInAct == 100 ? "bg-success" : (percentInAct > 0 ? "bg-primary" : "bg-secondary")) rounded-pill px-2 py-1 extra-small">
                                     @percentInAct% готово
                                 </span>
                             </div>
 
-                            <!-- Кнопка быстрого добавления сцены в этот акт -->
                             <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 py-1 shadow-none"
                                     title="Добавить новую сцену в этот акт"
                                     @onclick="() => OpenCreatePage(act)">
                                 <i class="bi bi-plus-lg me-1"></i>Сцена
                             </button>
 
-                            <!-- Кнопка свернуть/развернуть -->
                             <button class="btn btn-sm btn-light rounded-circle shadow-none p-1"
                                     title="@(isCollapsed ? "Развернуть акт" : "Свернуть (архивировать) акт")"
                                     @onclick="() => ToggleAct(act)">
@@ -178,20 +167,12 @@ else
                         </div>
                     </div>
 
-                    <!-- Содержимое акта -->
                     @if (!isCollapsed)
                     {
-                        <div class="act-body p-4 pt-2 border-top"
-                             @ondragover="OnDragOver"
-                             @ondragover:preventDefault="true"
-                             @ondrop="() => OnDropOnAct(act)">
+                        <div class="act-body p-4 pt-2 border-top">
                             @if (!actScenes.Any())
                             {
-                                <div class="text-center py-4 text-muted small bg-light rounded-3 my-2 border act-empty-dropzone"
-                                     @ondragover="OnDragOver"
-                                     @ondragover:preventDefault="true"
-                                     @ondrop="() => OnDropOnAct(act)"
-                                     @ondrop:stopPropagation="true">
+                                <div class="text-center py-4 text-muted small bg-light rounded-3 my-2 border act-empty-dropzone">
                                     <i class="bi bi-arrow-down-circle text-warning fs-3 d-block mb-1"></i>
                                     <span class="fw-semibold">В этом акте пока нет сцен.</span><br />
                                     <span>Перетащите сюда карточку сцены из другого акта или</span>
@@ -202,10 +183,7 @@ else
                             }
                             else
                             {
-                                <div class="row g-3 mt-1"
-                                     @ondragover="OnDragOver"
-                                     @ondragover:preventDefault="true"
-                                     @ondrop="() => OnDropOnAct(act)">
+                                <div class="row g-3 mt-1">
                                     @foreach (var scene in actScenes)
                                     {
                                         <div class="col-12 col-md-6 col-lg-4">
@@ -220,7 +198,6 @@ else
                                                 <div class="card-accent-bar" style="@GetAccentBarStyle(scene)"></div>
 
                                                 <div>
-                                                    <!-- Верхняя плашка: Drag Handle + Номер сцены + Выбор Акта + Статус готовности + Кнопка удаления -->
                                                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                                                         <div class="d-flex align-items-center gap-2 flex-wrap">
                                                             <span class="drag-handle" title="Зажмите для перетаскивания">
@@ -230,7 +207,6 @@ else
                                                                 СЦЕНА @scene.SceneNumber
                                                             </span>
 
-                                                            <!-- Быстрая смена акта через нативный select прямо на карточке -->
                                                             <select class="act-select-badge shadow-none"
                                                                     title="Переместить сцену в другой акт"
                                                                     draggable="false"
@@ -242,7 +218,6 @@ else
                                                                 <option value="Act3">Акт III</option>
                                                             </select>
 
-                                                            <!-- Интерактивный бейдж статуса (клик меняет статус на лету) -->
                                                             <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
                                                                     title="Нажмите для смены статуса (Черновик → В работе → Готова)"
                                                                     @onclick="() => CycleSceneStatus(scene)"
@@ -261,7 +236,6 @@ else
                                                         </button>
                                                     </div>
 
-                                                    <!-- Маркер трёхактной структуры (если задан) -->
                                                     @if (scene.DramaticStructure != DramaticStructure.None)
                                                     {
                                                         <div class="mb-2">
@@ -271,7 +245,6 @@ else
                                                         </div>
                                                     }
 
-                                                    <!-- Название сцены (редактируемое) -->
                                                     <div class="mb-2">
                                                         @if (editingTitleSceneId == scene.Id)
                                                         {
@@ -298,12 +271,10 @@ else
                                                         }
                                                     </div>
 
-                                                    <!-- Сценарный заголовок (Slugline) -->
                                                     <div class="text-muted small fw-semibold mb-2">
                                                         <i class="bi bi-geo-alt me-1 text-warning"></i> @scene.Slugline
                                                     </div>
 
-                                                    <!-- Персонажи сцены -->
                                                     @if (scene.SceneCharacters != null && scene.SceneCharacters.Any())
                                                     {
                                                         <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
@@ -316,7 +287,6 @@ else
                                                     }
                                                 </div>
 
-                                                <!-- Нижняя панель действий: Следующая, Клонировать и Открыть -->
                                                 <div class="card-footer-actions d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
                                                     <div class="d-flex align-items-center gap-2">
                                                         <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
@@ -353,7 +323,6 @@ else
                     }
                     else
                     {
-                        <!-- Свернутое состояние (архивное отображение) -->
                         <div class="act-collapsed-preview px-4 py-2 bg-light border-top d-flex justify-content-between align-items-center small text-muted cursor-pointer"
                              @onclick="() => ToggleAct(act)">
                             <span>
@@ -368,7 +337,6 @@ else
     }
     else
     {
-        <!-- РЕЖИМ «СПЛОШНОЙ СПИСОК»: Плоский сквозной список всех сцен -->
         <div class="row g-3">
             @foreach (var scene in FilteredScenes)
             {
@@ -384,7 +352,6 @@ else
                         <div class="card-accent-bar" style="@GetAccentBarStyle(scene)"></div>
 
                         <div>
-                            <!-- Верхняя плашка -->
                             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <span class="drag-handle" title="Зажмите для перетаскивания">
@@ -394,7 +361,6 @@ else
                                         СЦЕНА @scene.SceneNumber
                                     </span>
 
-                                    <!-- Смена акта -->
                                     <select class="act-select-badge shadow-none"
                                             title="Переместить сцену в другой акт"
                                             draggable="false"
@@ -406,7 +372,6 @@ else
                                         <option value="Act3">Акт III</option>
                                     </select>
 
-                                    <!-- Статус -->
                                     <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
                                             title="Нажмите для смены статуса (Черновик → В работе → Готова)"
                                             @onclick="() => CycleSceneStatus(scene)"
@@ -640,28 +605,30 @@ else
 
     private async Task OnDrop(Scene targetScene)
     {
-        if (draggedScene == null)
-            return;
+        var item = draggedScene;
+        draggedScene = null;
 
-        if (draggedScene.Id != targetScene.Id)
+        if (item == null || item.Id == targetScene.Id)
         {
-            int originalIndex = scenes.FindIndex(s => s.Id == draggedScene.Id);
+            StateHasChanged();
+            return;
+        }
+
+        if (item.Act != targetScene.Act)
+        {
+            await SceneService.MoveSceneToActAsync(item.Id, targetScene.Act, targetScene.Id);
+            scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
+        }
+        else
+        {
+            int originalIndex = scenes.FindIndex(s => s.Id == item.Id);
             int targetIndex = scenes.FindIndex(s => s.Id == targetScene.Id);
 
             if (originalIndex != -1 && targetIndex != -1)
             {
-                var movedItem = scenes[originalIndex];
                 scenes.RemoveAt(originalIndex);
-                scenes.Insert(targetIndex, movedItem);
+                scenes.Insert(targetIndex, item);
 
-                // Если сцену перенесли на позицию сцены другого акта, переводим её в этот акт
-                if (movedItem.Act != targetScene.Act)
-                {
-                    movedItem.Act = targetScene.Act;
-                    await SceneService.UpdateSceneActAsync(movedItem.Id, targetScene.Act);
-                }
-
-                // Пересчитываем сквозные номера 1, 2, 3...
                 for (int i = 0; i < scenes.Count; i++)
                 {
                     scenes[i].SceneNumber = i + 1;
@@ -672,56 +639,22 @@ else
             }
         }
 
-        draggedScene = null;
         StateHasChanged();
     }
 
     private async Task OnDropOnAct(MovieAct targetAct)
     {
-        if (draggedScene == null) return;
+        var item = draggedScene;
+        draggedScene = null;
 
-        if (draggedScene.Act != targetAct)
+        if (item == null || item.Act == targetAct)
         {
-            draggedScene.Act = targetAct;
-            await SceneService.UpdateSceneActAsync(draggedScene.Id, targetAct);
-
-            int originalIndex = scenes.FindIndex(s => s.Id == draggedScene.Id);
-            if (originalIndex != -1)
-            {
-                var movedItem = scenes[originalIndex];
-                scenes.RemoveAt(originalIndex);
-
-                int lastInAct = scenes.FindLastIndex(s => s.Act == targetAct);
-                if (lastInAct != -1)
-                {
-                    scenes.Insert(lastInAct + 1, movedItem);
-                }
-                else
-                {
-                    if (targetAct == MovieAct.Act1)
-                        scenes.Insert(0, movedItem);
-                    else if (targetAct == MovieAct.Act2)
-                    {
-                        int lastAct1 = scenes.FindLastIndex(s => s.Act == MovieAct.Act1);
-                        scenes.Insert(lastAct1 != -1 ? lastAct1 + 1 : 0, movedItem);
-                    }
-                    else
-                    {
-                        scenes.Add(movedItem);
-                    }
-                }
-
-                for (int i = 0; i < scenes.Count; i++)
-                {
-                    scenes[i].SceneNumber = i + 1;
-                }
-
-                var orderedIds = scenes.Select(s => s.Id).ToList();
-                await SceneService.UpdateScenesOrderAsync(orderedIds, ProjectId);
-            }
+            StateHasChanged();
+            return;
         }
 
-        draggedScene = null;
+        await SceneService.MoveSceneToActAsync(item.Id, targetAct);
+        scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
         StateHasChanged();
     }
 
@@ -737,46 +670,9 @@ else
         {
             if (scene.Act == newAct) return;
 
-            scene.Act = newAct;
-            await SceneService.UpdateSceneActAsync(scene.Id, newAct);
-
-            // Перемещаем сцену в целевой акт
-            int originalIndex = scenes.FindIndex(s => s.Id == scene.Id);
-            if (originalIndex != -1)
-            {
-                var item = scenes[originalIndex];
-                scenes.RemoveAt(originalIndex);
-
-                int lastInAct = scenes.FindLastIndex(s => s.Act == newAct);
-                if (lastInAct != -1)
-                {
-                    scenes.Insert(lastInAct + 1, item);
-                }
-                else
-                {
-                    if (newAct == MovieAct.Act1)
-                        scenes.Insert(0, item);
-                    else if (newAct == MovieAct.Act2)
-                    {
-                        int lastAct1 = scenes.FindLastIndex(s => s.Act == MovieAct.Act1);
-                        scenes.Insert(lastAct1 != -1 ? lastAct1 + 1 : 0, item);
-                    }
-                    else
-                    {
-                        scenes.Add(item);
-                    }
-                }
-
-                for (int i = 0; i < scenes.Count; i++)
-                {
-                    scenes[i].SceneNumber = i + 1;
-                }
-
-                var orderedIds = scenes.Select(s => s.Id).ToList();
-                await SceneService.UpdateScenesOrderAsync(orderedIds, ProjectId);
-
-                StateHasChanged();
-            }
+            await SceneService.MoveSceneToActAsync(scene.Id, newAct);
+            scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
+            StateHasChanged();
         }
     }
 
