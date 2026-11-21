@@ -27,7 +27,6 @@
     element.__quill = quill;
     quill.root.innerHTML = initialContent || '';
 
-    // Переименовываем пункты выпадающего списка
     setTimeout(() => {
         const pickerItems = element.parentNode.querySelectorAll('.ql-picker.ql-header .ql-picker-item');
         pickerItems.forEach(item => {

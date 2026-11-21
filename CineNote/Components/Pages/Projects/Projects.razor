@@ -28,7 +28,6 @@
             </a>
         </div>
 
-        <!-- Переключатель вкладок: Мои проекты / Доступные мне -->
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div class="btn-group p-1 bg-light border rounded-pill shadow-none" role="group">
                 <button type="button" class="btn rounded-pill px-4 py-2 fw-semibold @(activeTab == "my" ? "btn-dark shadow-sm" : "text-muted")"
@@ -53,7 +52,7 @@
         }
         else if (activeTab == "my")
         {
-            <!-- Вкладка: МОИ ПРОЕКТЫ -->
+
             @if (userProjects == null || !userProjects.Any())
             {
                 <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-white p-4">
@@ -92,7 +91,7 @@
                                             <i class="bi bi-grip-vertical fs-5"></i>
                                         </span>
                                         <span class="badge px-3 py-2 rounded-pill small fw-semibold genre-badge">
-                                            <i class="bi bi-tag-fill me-1"></i> @GetGenreDisplayName(project.Genre)
+                                            <i class="bi bi-tag-fill me-1"></i> @project.Genre.ToDisplayName()
                                         </span>
                                     </div>
                                     <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none" @onclick="async () => await DeleteProject(project.Id)" title="Удалить проект">
@@ -121,12 +120,9 @@
                                     </p>
                                 </div>
 
-                                <div class="mt-4 pt-3 border-top d-flex gap-2">
-                                    <a href="/projects/@project.Id" class="btn btn-dark btn-sm flex-grow-1 py-2 fw-semibold open-btn">
+                                <div class="mt-4 pt-3 border-top">
+                                    <a href="/projects/@project.Id" class="btn btn-dark btn-sm w-100 py-2 fw-semibold open-btn">
                                         <i class="bi bi-folder2-open me-1"></i> Открыть
-                                    </a>
-                                    <a href="/projects/@project.Id/share" class="btn btn-outline-warning btn-sm py-2 px-3 fw-semibold text-dark" title="Управление соавторами">
-                                        <i class="bi bi-people-fill"></i>
                                     </a>
                                 </div>
                             </div>
@@ -137,7 +133,7 @@
         }
         else
         {
-            <!-- Вкладка: ДОСТУПНЫЕ МНЕ (Совместная работа) -->
+
             @if (sharedProjects == null || !sharedProjects.Any())
             {
                 <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-white p-4">
@@ -169,7 +165,7 @@
 
                                 <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                                     <span class="badge px-3 py-2 rounded-pill small fw-semibold genre-badge">
-                                        <i class="bi bi-tag-fill me-1"></i> @GetGenreDisplayName(project.Genre)
+                                        <i class="bi bi-tag-fill me-1"></i> @project.Genre.ToDisplayName()
                                     </span>
                                     <span class="badge @ProjectAccessLevel.ToBadgeClass(accessLevel) rounded-pill px-3 py-1 small fw-semibold">
                                         <i class="bi @ProjectAccessLevel.ToIconClass(accessLevel) me-1"></i> @accessLevel
@@ -218,7 +214,7 @@
     private List<MovieProject>? sharedProjects;
     private MovieProject? draggedProject;
     private bool isLoading = true;
-    private string activeTab = "my"; // "my" | "shared"
+    private string activeTab = "my";
 
     protected override async Task OnInitializedAsync()
     {
@@ -305,26 +301,5 @@
     {
         draggedProject = null;
         StateHasChanged();
-    }
-
-    private string GetGenreDisplayName(Genre genre)
-    {
-        return genre switch
-        {
-            Genre.Drama => "Драма",
-            Genre.Comedy => "Комедия",
-            Genre.Action => "Боевик",
-            Genre.Thriller => "Триллер",
-            Genre.SciFi => "Фантастика",
-            Genre.Horror => "Ужасы",
-            Genre.Romance => "Мелодрама",
-            Genre.Fantasy => "Фэнтези",
-            Genre.Mystery => "Детектив",
-            Genre.Crime => "Криминал",
-            Genre.Animation => "Анимация",
-            Genre.Documentary => "Документальный",
-            Genre.Other => "Другое",
-            _ => genre.ToString()
-        };
     }
 }

@@ -42,7 +42,7 @@
                     {
                         <span class="workspace-genre">
                             <i class="bi bi-tag-fill me-1"></i>
-                            @GetGenreDisplayName(project.Genre)
+                            @project.Genre.ToDisplayName()
                         </span>
 
                         @if (!isReadOnly)
@@ -58,7 +58,7 @@
                         <select class="form-select form-select-sm workspace-genre-select" @bind="selectedGenre">
                             @foreach (Genre genre in Enum.GetValues(typeof(Genre)))
                             {
-                                <option value="@genre">@GetGenreDisplayName(genre)</option>
+                                <option value="@genre">@genre.ToDisplayName()</option>
                             }
                         </select>
 
@@ -191,21 +191,5 @@
     {
         selectedGenre = project!.Genre;
         isEditingGenre = false;
-    }
-
-    private string GetGenreDisplayName(Genre genre)
-    {
-        return genre switch
-        {
-            Genre.Drama => "Драма",
-            Genre.Comedy => "Комедия",
-            Genre.Thriller => "Триллер",
-            Genre.Horror => "Ужасы",
-            Genre.Fantasy => "Фэнтези",
-            Genre.Action => "Боевик",
-            Genre.Romance => "Мелодрама",
-            Genre.SciFi => "Фантастика",
-            _ => genre.ToString()
-        };
     }
 }

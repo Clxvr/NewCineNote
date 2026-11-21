@@ -13,14 +13,12 @@ namespace CineNote.Services
             _contextFactory = contextFactory;
         }
 
-
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         }
 
-     
         public async Task<User> AddUserAsync(User user)
         {
             using var context = await _contextFactory.CreateDbContextAsync();

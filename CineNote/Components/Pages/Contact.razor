@@ -75,7 +75,7 @@
 
                 <div class="mb-4">
                     <label class="form-label fw-semibold text-dark">Ваше сообщение:</label>
-                    <InputTextArea class="form-control rounded-3" rows="5" @bind-Value="contactModel.Message" 
+                    <InputTextArea class="form-control rounded-3" rows="5" @bind-Value="contactModel.Message"
                                    placeholder="Опишите подробно ваш вопрос или идею..." />
                     <div class="text-danger small mt-1">
                         <ValidationMessage For="@(() => contactModel.Message)" />

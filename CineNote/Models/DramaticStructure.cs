@@ -2,11 +2,11 @@ namespace CineNote.Models
 {
     public enum DramaticStructure
     {
-        None,        // Обычная сцена
-        Exposition,  // Завязка
-        Midpoint,    // Мидпоинт
-        Climax,      // Кульминация
-        Resolution   // Развязка
+        None,
+        Exposition,
+        Midpoint,
+        Climax,
+        Resolution
     }
 
     public static class DramaticStructureExtensions

@@ -4,10 +4,10 @@
 
 namespace CineNote.Migrations
 {
-    /// <inheritdoc />
+
     public partial class AddTitleToScene : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
@@ -29,7 +29,6 @@ namespace CineNote.Migrations
                 defaultValue: "");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

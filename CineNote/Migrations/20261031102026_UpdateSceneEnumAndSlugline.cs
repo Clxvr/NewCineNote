@@ -4,10 +4,10 @@
 
 namespace CineNote.Migrations
 {
-    /// <inheritdoc />
+
     public partial class UpdateSceneEnumAndSlugline : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<int>(
@@ -29,7 +29,6 @@ namespace CineNote.Migrations
                 oldMaxLength: 20);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(

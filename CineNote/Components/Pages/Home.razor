@@ -1,59 +1,102 @@
 @page "/"
+
 @using CineNote.Services
+
 @inject AuthService AuthService
+
 @implements IDisposable
 
 <div class="container mt-5 py-4 text-center" style="max-width: 650px;">
+
     @if (!AuthService.IsLoggedIn || AuthService.CurrentUser == null)
+
     {
-     
+
         <div class="card shadow-sm border-0 rounded-4 p-5 bg-white">
+
             <div class="mb-3">
+
                 <img src="/images/icons/logo.png" alt="CineNote" width="110" height="110" style="object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12));" />
+
             </div>
-            <h1 class="fw-bold mb-3 text-dark">Добро пожаловать в CineNote</h1>
+
+            <h1 class="fw-bold mb-3 text-dark">Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ РІ CineNote</h1>
+
             <p class="text-muted mb-4 lead fs-6">
-                Профессиональный инструмент для сценаристов. Создавайте проекты, пишите логлайны и управляйте своими историями в удобном сценарном формате.
+
+                РџСЂРѕС„РµСЃСЃРёРѕРЅР°Р»СЊРЅС‹Р№ РёРЅСЃС‚СЂСѓРјРµРЅС‚ РґР»СЏ СЃС†РµРЅР°СЂРёСЃС‚РѕРІ. РЎРѕР·РґР°РІР°Р№С‚Рµ РїСЂРѕРµРєС‚С‹, РїРёС€РёС‚Рµ Р»РѕРіР»Р°Р№РЅС‹ Рё СѓРїСЂР°РІР»СЏР№С‚Рµ СЃРІРѕРёРјРё РёСЃС‚РѕСЂРёСЏРјРё РІ СѓРґРѕР±РЅРѕРј СЃС†РµРЅР°СЂРЅРѕРј С„РѕСЂРјР°С‚Рµ.
+
             </p>
+
             <div class="d-flex justify-content-center gap-3">
-                <a href="/login" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">Войти в аккаунт</a>
-                <a href="/register" class="btn btn-outline-dark px-4 py-2 fw-semibold">Зарегистрироваться</a>
+
+                <a href="/login" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">Р’РѕР№С‚Рё РІ Р°РєРєР°СѓРЅС‚</a>
+
+                <a href="/register" class="btn btn-outline-dark px-4 py-2 fw-semibold">Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊСЃСЏ</a>
+
             </div>
+
         </div>
+
     }
+
     else
+
     {
-    
+
         <div class="card shadow-sm border-0 rounded-4 p-5 bg-white">
+
             <div class="mb-3">
+
                 <img src="/images/icons/logo.png" alt="CineNote" width="110" height="110" style="object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.12));" />
+
             </div>
-            <h1 class="fw-bold mb-2 text-dark">С возвращением, @AuthService.CurrentUser.Name!</h1>
+
+            <h1 class="fw-bold mb-2 text-dark">РЎ РІРѕР·РІСЂР°С‰РµРЅРёРµРј, @AuthService.CurrentUser.Name!</h1>
+
             <p class="text-muted mb-4">
-                Готовы продолжить работу над историями или хотите начать новый сценарный проект?
+
+                Р“РѕС‚РѕРІС‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ СЂР°Р±РѕС‚Сѓ РЅР°Рґ РёСЃС‚РѕСЂРёСЏРјРё РёР»Рё С…РѕС‚РёС‚Рµ РЅР°С‡Р°С‚СЊ РЅРѕРІС‹Р№ СЃС†РµРЅР°СЂРЅС‹Р№ РїСЂРѕРµРєС‚?
+
             </p>
+
             <div class="d-flex justify-content-center flex-wrap gap-3">
+
                 <a href="/projects" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
-                    <i class="bi bi-journal-bookmark me-2"></i> Мои проекты
+
+                    <i class="bi bi-journal-bookmark me-2"></i> РњРѕРё РїСЂРѕРµРєС‚С‹
+
                 </a>
+
                 <a href="/projects/create" class="btn btn-warning px-4 py-2 fw-semibold shadow-sm">
-                    <i class="bi bi-plus-lg me-2"></i> Создать проект
+
+                    <i class="bi bi-plus-lg me-2"></i> РЎРѕР·РґР°С‚СЊ РїСЂРѕРµРєС‚
+
                 </a>
+
             </div>
+
         </div>
+
     }
+
 </div>
 
 @code {
     protected override void OnInitialized()
+
     {
-     
+
         AuthService.OnChange += StateHasChanged;
+
     }
 
     public void Dispose()
+
     {
-     
+
         AuthService.OnChange -= StateHasChanged;
+
     }
+
 }

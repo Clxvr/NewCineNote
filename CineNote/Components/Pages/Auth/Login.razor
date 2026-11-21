@@ -24,8 +24,8 @@
                 <label class="form-label fw-semibold">Пароль:</label>
                 <div class="input-group">
                     <InputText type="@passwordInputType" class="form-control" @bind-Value="loginModel.Password" placeholder="........" />
-                    <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility">
-                        @passwordButtonText
+                    <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility" title="@(showPassword ? "Скрыть пароль" : "Показать пароль")">
+                        <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>
                 <div class="text-danger small mt-1">
@@ -57,7 +57,6 @@
     private bool showPassword = false;
 
     private string passwordInputType => showPassword ? "text" : "password";
-    private string passwordButtonText => showPassword ? "Скрыть" : "Показать";
 
     private void TogglePasswordVisibility()
     {

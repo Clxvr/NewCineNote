@@ -19,7 +19,6 @@ namespace CineNote.Services
 
             var emailMessage = new MimeMessage();
 
-        
             emailMessage.From.Add(new MailboxAddress(
                 emailSettings["SenderName"] ?? "CineNote Support",
                 emailSettings["SenderEmail"] ?? "noreply@cinenote.com"));

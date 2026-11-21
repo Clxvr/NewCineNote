@@ -13,9 +13,6 @@ namespace CineNote.Services
             _contextFactory = contextFactory;
         }
 
-        /// <summary>
-        /// Возвращает список всех соавторов кинопроекта с подгруженными данными пользователей.
-        /// </summary>
         public async Task<List<ProjectShare>> GetProjectSharesAsync(int projectId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -27,10 +24,6 @@ namespace CineNote.Services
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Определяет уровень доступа пользователя к проекту:
-        /// "Владелец", "Редактор", "Читатель" или null (если доступа нет).
-        /// </summary>
         public async Task<string?> GetUserAccessLevelAsync(int projectId, int userId)
         {
             if (userId <= 0) return null;
@@ -55,27 +48,18 @@ namespace CineNote.Services
             return share?.AccessLevel;
         }
 
-        /// <summary>
-        /// Проверяет, может ли пользователь редактировать проект (является ли Владельцем или Редактором).
-        /// </summary>
         public async Task<bool> CanUserEditProjectAsync(int projectId, int userId)
         {
             var level = await GetUserAccessLevelAsync(projectId, userId);
             return level == ProjectAccessLevel.Owner || level == ProjectAccessLevel.Editor;
         }
 
-        /// <summary>
-        /// Проверяет, может ли пользователь просматривать проект (Владелец, Редактор или Читатель).
-        /// </summary>
         public async Task<bool> CanUserViewProjectAsync(int projectId, int userId)
         {
             var level = await GetUserAccessLevelAsync(projectId, userId);
             return level != null;
         }
 
-        /// <summary>
-        /// Проверяет, является ли пользователь создателем/владельцем проекта.
-        /// </summary>
         public async Task<bool> IsProjectOwnerAsync(int projectId, int userId)
         {
             if (userId <= 0) return false;
@@ -84,10 +68,6 @@ namespace CineNote.Services
             return await context.MovieProjects.AnyAsync(p => p.Id == projectId && p.UserId == userId);
         }
 
-        /// <summary>
-        /// Приглашает соавтора по Email с указанием уровня доступа («Редактор» или «Читатель»).
-        /// Только владелец проекта может приглашать участников.
-        /// </summary>
         public async Task<(bool Success, string Message, ProjectShare? Share)> InviteCollaboratorByEmailAsync(
             int projectId, int currentUserId, string email, string accessLevel)
         {
@@ -114,7 +94,6 @@ namespace CineNote.Services
                 return (false, "Приглашать соавторов может только создатель (владелец) проекта.", null);
             }
 
-            // Поиск приглашаемого пользователя
             var targetUser = await context.Users
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
 
@@ -128,7 +107,6 @@ namespace CineNote.Services
                 return (false, "Вы являетесь владельцем этого проекта. Добавить самого себя в соавторы нельзя.", null);
             }
 
-            // Проверка, не приглашён ли уже
             var existingShare = await context.ProjectShares
                 .FirstOrDefaultAsync(ps => ps.MovieProjectId == projectId && ps.SharedWithUserId == targetUser.Id);
 
@@ -137,7 +115,6 @@ namespace CineNote.Services
                 return (false, $"Пользователь «{targetUser.Name}» ({targetUser.Email}) уже добавлен в соавторы (текущая роль: {existingShare.AccessLevel}).", null);
             }
 
-            // Валидация уровня доступа
             if (accessLevel != ProjectAccessLevel.Editor && accessLevel != ProjectAccessLevel.Viewer)
             {
                 accessLevel = ProjectAccessLevel.Viewer;
@@ -153,15 +130,11 @@ namespace CineNote.Services
             context.ProjectShares.Add(newShare);
             await context.SaveChangesAsync();
 
-            // Подгружаем навигационное свойство для отображения в UI
             newShare.SharedWithUser = targetUser;
 
             return (true, $"Соавтор «{targetUser.Name}» успешно добавлен с правами «{accessLevel}».", newShare);
         }
 
-        /// <summary>
-        /// Изменяет уровень доступа соавтора (Редактор <-> Читатель).
-        /// </summary>
         public async Task<(bool Success, string Message)> UpdateShareAccessLevelAsync(
             int shareId, int currentUserId, string newAccessLevel)
         {
@@ -193,10 +166,6 @@ namespace CineNote.Services
             return (true, $"Права пользователя «{share.SharedWithUser?.Name ?? "соавтора"}» изменены на «{newAccessLevel}».");
         }
 
-        /// <summary>
-        /// Отзывает доступ соавтора к проекту.
-        /// Выполнить может владелец проекта (удалить соавтора).
-        /// </summary>
         public async Task<(bool Success, string Message)> RemoveShareAsync(int shareId, int currentUserId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -231,9 +200,6 @@ namespace CineNote.Services
             return (true, $"Доступ для пользователя «{userName}» успешно отозван.");
         }
 
-        /// <summary>
-        /// Позволяет соавтору выйти из совместного проекта.
-        /// </summary>
         public async Task<(bool Success, string Message)> LeaveProjectAsync(int projectId, int currentUserId)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -252,9 +218,6 @@ namespace CineNote.Services
             return (true, "Вы успешно покинули проект.");
         }
 
-        /// <summary>
-        /// Возвращает все проекты, к которым пользователю предоставлен совместный доступ (где он соавтор).
-        /// </summary>
         public async Task<List<MovieProject>> GetSharedProjectsForUserAsync(int userId)
         {
             if (userId <= 0) return new List<MovieProject>();

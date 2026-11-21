@@ -4,10 +4,10 @@
 
 namespace CineNote.Migrations
 {
-    /// <inheritdoc />
+
     public partial class AddEmailVerification : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
@@ -42,7 +42,6 @@ namespace CineNote.Migrations
                 nullable: true);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

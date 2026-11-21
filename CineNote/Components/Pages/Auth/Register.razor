@@ -44,8 +44,8 @@
                 <label class="form-label fw-semibold">Пароль:</label>
                 <div class="input-group">
                     <InputText @bind-Value="newUser.Password" type="@(showPassword ? "text" : "password")" class="form-control" placeholder="Пароль" />
-                    <button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword">
-                        @(showPassword ? "Скрыть" : "Показать")
+                    <button type="button" class="btn btn-outline-secondary" @onclick="TogglePassword" title="@(showPassword ? "Скрыть пароль" : "Показать пароль")">
+                        <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye")"></i>
                     </button>
                 </div>
                 <div style="min-height: 38px;" class="mt-1">
@@ -141,7 +141,7 @@
 
                     <h3 style='color: #1f2937; margin-top: 0; font-size: 18px;'>Здравствуйте, {newUser.Name}!</h3>
                     <p style='color: #4b5563; line-height: 1.6; font-size: 15px; margin-bottom: 25px;'>
-                        Благодарим вас за регистрацию в сервисе <strong>CineNote</strong>. 
+                        Благодарим вас за регистрацию в сервисе <strong>CineNote</strong>.
                         Для завершения создания учетной записи и активации аккаунта введите одноразовый код подтверждения:
                     </p>
 

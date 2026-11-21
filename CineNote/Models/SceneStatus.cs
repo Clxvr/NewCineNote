@@ -2,9 +2,9 @@ namespace CineNote.Models
 {
     public enum SceneStatus
     {
-        Draft,       // Черновик
-        InProgress,  // В работе
-        Ready        // Готова
+        Draft,
+        InProgress,
+        Ready
     }
 
     public static class SceneStatusExtensions

@@ -1,4 +1,4 @@
-/* Карточка акта (папка-раздел) */
+
 .act-card {
     border: 1px solid rgba(0, 0, 0, 0.05) !important;
     transition: all 0.25s ease;
@@ -35,7 +35,6 @@
     background-color: #F1F5F9;
 }
 
-/* Переключатель вида (По актам / Сплошной) */
 .view-switch-btn {
     border: none !important;
     font-size: 0.8rem;
@@ -49,7 +48,6 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Карточки сцен */
 .scene-card {
     background: #ffffff;
     transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -146,7 +144,6 @@
     letter-spacing: 0.4px;
 }
 
-/* Выпадающий список выбора акта на карточке (аккуратный pill-бейдж) */
 .act-select-badge {
     background-color: #F8FAFC;
     color: #334155;
@@ -186,7 +183,6 @@
     transition: all 0.2s ease;
 }
 
-/* Статусы готовности сцены */
 .badge-status-draft {
     background-color: #F1F5F9 !important;
     color: #475569 !important;
@@ -235,7 +231,6 @@
     transform: scale(1.02);
 }
 
-/* Драматургические маркеры трёхактной структуры */
 .badge-dramatic-exposition {
     background-color: #F5F3FF;
     color: #6D28D9;
@@ -268,7 +263,6 @@
     letter-spacing: 0.2px;
 }
 
-/* Кнопки фильтрации */
 .status-filter-btn {
     border-radius: 9999px;
     padding: 0.35rem 0.85rem;

@@ -4,10 +4,10 @@
 
 namespace CineNote.Migrations
 {
-    /// <inheritdoc />
+
     public partial class AddSceneStatusAndDramaticStructure : Migration
     {
-        /// <inheritdoc />
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
@@ -25,7 +25,6 @@ namespace CineNote.Migrations
                 defaultValue: 0);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

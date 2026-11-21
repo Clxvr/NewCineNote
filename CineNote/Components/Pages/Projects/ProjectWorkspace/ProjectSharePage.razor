@@ -10,7 +10,7 @@
 @inject IJSRuntime JS
 
 <div class="share-page-container">
-    <!-- Верхний заголовок раздела -->
+
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div class="d-flex align-items-center gap-3">
             <div class="share-header-icon rounded-4 d-flex align-items-center justify-content-center shadow-sm">
@@ -51,7 +51,7 @@
     }
     else
     {
-        <!-- Блок приглашения нового соавтора (только для владельца) -->
+
         @if (isOwner)
         {
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 invite-card">
@@ -136,7 +136,6 @@
             </div>
         }
 
-        <!-- Список команды проекта -->
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark m-0">
@@ -155,7 +154,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Владелец проекта -->
+
                         <tr class="owner-row">
                             <td>
                                 <div class="d-flex align-items-center gap-3">
@@ -179,7 +178,6 @@
                             </td>
                         </tr>
 
-                        <!-- Список приглашенных соавторов -->
                         @if (!shares.Any())
                         {
                             <tr>
@@ -213,7 +211,7 @@
                                     <td>
                                         @if (isOwner)
                                         {
-                                            <!-- Владелец может сменить роль на лету через селект -->
+
                                             <select class="form-select form-select-sm role-select shadow-none d-inline-block w-auto"
                                                     value="@share.AccessLevel"
                                                     @onchange="(e) => ChangeShareRole(share, e.Value)">
@@ -273,7 +271,6 @@
     private string? currentUserRole;
     private bool isOwner => currentUserRole == ProjectAccessLevel.Owner;
 
-    // Поля формы приглашения
     private string inviteEmail = string.Empty;
     private string inviteAccessLevel = ProjectAccessLevel.Editor;
     private bool isSubmitting = false;

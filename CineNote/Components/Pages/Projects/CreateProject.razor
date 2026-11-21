@@ -31,7 +31,7 @@
                 <InputSelect class="form-select" @bind-Value="newProject.Genre">
                     @foreach (Genre genre in Enum.GetValues(typeof(Genre)))
                     {
-                        <option value="@genre">@GetGenreDisplayName(genre)</option>
+                        <option value="@genre">@genre.ToDisplayName()</option>
                     }
                 </InputSelect>
                 <div class="text-danger small mt-1">
@@ -65,26 +65,5 @@
         newProject.UserId = AuthService.CurrentUser.Id;
         await ProjectService.AddProjectAsync(newProject);
         Navigation.NavigateTo("/projects");
-    }
-
-    private string GetGenreDisplayName(Genre genre)
-    {
-        return genre switch
-        {
-            Genre.Drama => "Драма",
-            Genre.Comedy => "Комедия",
-            Genre.Action => "Боевик",
-            Genre.Thriller => "Триллер",
-            Genre.SciFi => "Фантастика",
-            Genre.Horror => "Ужасы",
-            Genre.Romance => "Мелодрама",
-            Genre.Fantasy => "Фэнтези",
-            Genre.Mystery => "Детектив",
-            Genre.Crime => "Криминал",
-            Genre.Animation => "Анимация",
-            Genre.Documentary => "Документальный",
-            Genre.Other => "Другое",
-            _ => genre.ToString()
-        };
     }
 }

@@ -2,9 +2,9 @@ namespace CineNote.Models
 {
     public enum MovieAct
     {
-        Act1, // Акт I: Экспозиция и завязка
-        Act2, // Акт II: Развитие и мидпоинт
-        Act3  // Акт III: Кульминация и финал
+        Act1,
+        Act2,
+        Act3
     }
 
     public static class MovieActExtensions
@@ -57,9 +57,9 @@ namespace CineNote.Models
         {
             return act switch
             {
-                MovieAct.Act1 => "#8B5CF6", // Фиолетовый
-                MovieAct.Act2 => "#F59E0B", // Янтарный
-                MovieAct.Act3 => "#EF4444", // Красный / огонь
+                MovieAct.Act1 => "#8B5CF6",
+                MovieAct.Act2 => "#F59E0B",
+                MovieAct.Act3 => "#EF4444",
                 _ => "#1F2937"
             };
         }
