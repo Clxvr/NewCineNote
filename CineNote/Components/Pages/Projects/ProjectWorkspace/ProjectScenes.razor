@@ -3,8 +3,21 @@
 @using CineNote.Models
 @using CineNote.Services
 @inject SceneService SceneService
+@inject ProjectShareService ShareService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+
+@if (!canEdit && !isLoading)
+{
+    <div class="alert alert-secondary d-flex align-items-center gap-3 rounded-4 mb-4 border-0 bg-white shadow-sm p-3">
+        <i class="bi bi-shield-lock-fill text-warning fs-3"></i>
+        <div>
+            <span class="fw-bold text-dark d-block">Режим совместного чтения</span>
+            <span class="text-muted small">Вам предоставлен доступ «Читатель». Вы можете открывать карточки сцен для ознакомления, но создание, изменение, сортировка и удаление сцен отключены.</span>
+        </div>
+    </div>
+}
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
@@ -29,9 +42,12 @@
             </button>
         </div>
 
-        <button class="btn btn-warning rounded-3 px-3 py-2 fw-semibold text-dark shadow-sm" @onclick="() => OpenCreatePage()">
-            <i class="bi bi-plus-lg me-1"></i> Добавить сцену
-        </button>
+        @if (canEdit)
+        {
+            <button class="btn btn-warning rounded-3 px-3 py-2 fw-semibold text-dark shadow-sm" @onclick="() => OpenCreatePage()">
+                <i class="bi bi-plus-lg me-1"></i> Добавить сцену
+            </button>
+        }
     </div>
 </div>
 
@@ -51,9 +67,12 @@ else if (!scenes.Any())
         </div>
         <h5 class="fw-bold text-dark mb-1">Сцены пока не добавлены</h5>
         <p class="text-muted small mb-3">Начните создавать поэпизодный план: распределяйте сцены по актам, задавайте локации и поворотные точки.</p>
-        <button class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm" @onclick="() => OpenCreatePage()">
-            <i class="bi bi-plus-lg me-1"></i> Добавить первую сцену
-        </button>
+        @if (canEdit)
+        {
+            <button class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm" @onclick="() => OpenCreatePage()">
+                <i class="bi bi-plus-lg me-1"></i> Добавить первую сцену
+            </button>
+        }
     </div>
 }
 else
@@ -153,11 +172,14 @@ else
                                 </span>
                             </div>
 
-                            <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 py-1 shadow-none"
-                                    title="Добавить новую сцену в этот акт"
-                                    @onclick="() => OpenCreatePage(act)">
-                                <i class="bi bi-plus-lg me-1"></i>Сцена
-                            </button>
+                            @if (canEdit)
+                            {
+                                <button class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 py-1 shadow-none"
+                                        title="Добавить новую сцену в этот акт"
+                                        @onclick="() => OpenCreatePage(act)">
+                                    <i class="bi bi-plus-lg me-1"></i>Сцена
+                                </button>
+                            }
 
                             <button class="btn btn-sm btn-light rounded-circle shadow-none p-1"
                                     title="@(isCollapsed ? "Развернуть акт" : "Свернуть (архивировать) акт")"
@@ -179,10 +201,13 @@ else
                                      @ondrop:stopPropagation="true">
                                     <i class="bi bi-arrow-down-circle text-warning fs-3 d-block mb-1"></i>
                                     <span class="fw-semibold">В этом акте пока нет сцен.</span><br />
-                                    <span>Перетащите сюда карточку сцены из другого акта или</span>
-                                    <button class="btn btn-link btn-sm text-warning p-0 ms-1 fw-semibold text-decoration-none" @onclick="() => OpenCreatePage(act)">
-                                        создайте новую сцену
-                                    </button>
+                                    @if (canEdit)
+                                    {
+                                        <span>Перетащите сюда карточку сцены из другого акта или</span>
+                                        <button class="btn btn-link btn-sm text-warning p-0 ms-1 fw-semibold text-decoration-none" @onclick="() => OpenCreatePage(act)">
+                                            создайте новую сцену
+                                        </button>
+                                    }
                                 </div>
                             }
                             else
@@ -192,7 +217,7 @@ else
                                     {
                                         <div class="col-12 col-md-6 col-lg-4">
                                             <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "") @(dropTargetScene == scene && draggedScene != scene ? "drop-target" : "")"
-                                                 draggable="true"
+                                                 draggable="@(canEdit ? "true" : "false")"
                                                  @onclick="() => OpenEditPage(scene)"
                                                  @ondragstart="(e) => OnDragStart(e, scene)"
                                                  @ondragend="OnDragEnd"
@@ -207,15 +232,19 @@ else
                                                 <div>
                                                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                                                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                            <span class="drag-handle" title="Зажмите для перетаскивания">
-                                                                <i class="bi bi-grip-vertical fs-5"></i>
-                                                            </span>
+                                                            @if (canEdit)
+                                                            {
+                                                                <span class="drag-handle" title="Зажмите для перетаскивания">
+                                                                    <i class="bi bi-grip-vertical fs-5"></i>
+                                                                </span>
+                                                            }
                                                             <span class="badge scene-num-badge rounded-pill px-3 py-1 fw-bold">
                                                                 СЦЕНА @scene.SceneNumber
                                                             </span>
 
                                                             <select class="act-select-badge shadow-none"
-                                                                    title="Переместить сцену в другой акт"
+                                                                    title="@(canEdit ? "Переместить сцену в другой акт" : "Акт сцены")"
+                                                                    disabled="@(!canEdit)"
                                                                     draggable="false"
                                                                     @onclick:stopPropagation="true"
                                                                     value="@scene.Act.ToString()"
@@ -225,13 +254,22 @@ else
                                                                 <option value="Act3">Акт III</option>
                                                             </select>
 
-                                                            <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
-                                                                    title="Нажмите для смены статуса (Черновик → В работе → Готова)"
-                                                                    @onclick="() => CycleSceneStatus(scene)"
-                                                                    @onclick:stopPropagation="true"
-                                                                    draggable="false">
-                                                                <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
-                                                            </button>
+                                                            @if (canEdit)
+                                                            {
+                                                                <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
+                                                                        title="Нажмите для смены статуса (Черновик → В работе → Готова)"
+                                                                        @onclick="() => CycleSceneStatus(scene)"
+                                                                        @onclick:stopPropagation="true"
+                                                                        draggable="false">
+                                                                    <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1">
+                                                                    <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
+                                                                </span>
+                                                            }
                                                         </div>
                                                     </div>
 
@@ -245,7 +283,7 @@ else
                                                     }
 
                                                     <div class="mb-2">
-                                                        @if (editingTitleSceneId == scene.Id)
+                                                        @if (editingTitleSceneId == scene.Id && canEdit)
                                                         {
                                                             <div class="input-group input-group-sm">
                                                                 <input type="text" class="form-control" @bind="tempTitle" @onkeyup="HandleTitleKeyUp" />
@@ -259,13 +297,16 @@ else
                                                                 <h5 class="fw-bold text-dark m-0 fs-6 text-truncate" title="@scene.DisplayTitle">
                                                                     @scene.DisplayTitle
                                                                 </h5>
-                                                                <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none edit-title-btn"
-                                                                        title="Быстро изменить название"
-                                                                        @onclick="() => StartInlineTitle(scene)"
-                                                                        @onclick:stopPropagation="true"
-                                                                        draggable="false">
-                                                                    <i class="bi bi-pencil-square"></i>
-                                                                </button>
+                                                                @if (canEdit)
+                                                                {
+                                                                    <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none edit-title-btn"
+                                                                            title="Быстро изменить название"
+                                                                            @onclick="() => StartInlineTitle(scene)"
+                                                                            @onclick:stopPropagation="true"
+                                                                            draggable="false">
+                                                                        <i class="bi bi-pencil-square"></i>
+                                                                    </button>
+                                                                }
                                                             </div>
                                                         }
                                                     </div>
@@ -286,35 +327,46 @@ else
                                                     }
                                                 </div>
 
-                                                <div class="card-footer-actions d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
-                                                                title="Вставить новую сцену сразу после этой"
-                                                                @onclick="() => InsertSceneAfter(scene.SceneNumber)"
+                                                @if (canEdit)
+                                                {
+                                                    <div class="card-footer-actions d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
+                                                                    title="Вставить новую сцену сразу после этой"
+                                                                    @onclick="() => InsertSceneAfter(scene.SceneNumber)"
+                                                                    @onclick:stopPropagation="true"
+                                                                    draggable="false">
+                                                                <i class="bi bi-plus-circle me-1 text-warning"></i>
+                                                                <span>Следующая</span>
+                                                            </button>
+                                                            <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
+                                                                    title="Клонировать сцену (создать дубликат)"
+                                                                    @onclick="() => DuplicateScene(scene.Id)"
+                                                                    @onclick:stopPropagation="true"
+                                                                    draggable="false">
+                                                                <i class="bi bi-copy me-1 text-primary"></i>
+                                                                <span>Клонировать</span>
+                                                            </button>
+                                                        </div>
+
+                                                        <button class="btn btn-action-delete btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center shadow-none"
+                                                                @onclick="async () => await DeleteScene(scene.Id)"
                                                                 @onclick:stopPropagation="true"
-                                                                draggable="false">
-                                                            <i class="bi bi-plus-circle me-1 text-warning"></i>
-                                                            <span>Следующая</span>
-                                                        </button>
-                                                        <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
-                                                                title="Клонировать сцену (создать дубликат)"
-                                                                @onclick="() => DuplicateScene(scene.Id)"
-                                                                @onclick:stopPropagation="true"
-                                                                draggable="false">
-                                                            <i class="bi bi-copy me-1 text-primary"></i>
-                                                            <span>Клонировать</span>
+                                                                draggable="false"
+                                                                title="Удалить сцену">
+                                                            <i class="bi bi-trash3 me-1"></i>
+                                                            <span>Удалить</span>
                                                         </button>
                                                     </div>
-
-                                                    <button class="btn btn-action-delete btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center shadow-none"
-                                                            @onclick="async () => await DeleteScene(scene.Id)"
-                                                            @onclick:stopPropagation="true"
-                                                            draggable="false"
-                                                            title="Удалить сцену">
-                                                        <i class="bi bi-trash3 me-1"></i>
-                                                        <span>Удалить</span>
-                                                    </button>
-                                                </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="card-footer-actions d-flex justify-content-end align-items-center mt-3 pt-2 border-top">
+                                                        <span class="text-muted extra-small">
+                                                            <i class="bi bi-eye me-1"></i>Только чтение
+                                                        </span>
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     }
@@ -343,7 +395,7 @@ else
             {
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 scene-card p-3 d-flex flex-column justify-content-between position-relative overflow-hidden @(draggedScene == scene ? "dragging" : "") @(dropTargetScene == scene && draggedScene != scene ? "drop-target" : "")"
-                         draggable="true"
+                         draggable="@(canEdit ? "true" : "false")"
                          @onclick="() => OpenEditPage(scene)"
                          @ondragstart="(e) => OnDragStart(e, scene)"
                          @ondragend="OnDragEnd"
@@ -358,15 +410,19 @@ else
                         <div>
                             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <span class="drag-handle" title="Зажмите для перетаскивания">
-                                        <i class="bi bi-grip-vertical fs-5"></i>
-                                    </span>
+                                    @if (canEdit)
+                                    {
+                                        <span class="drag-handle" title="Зажмите для перетаскивания">
+                                            <i class="bi bi-grip-vertical fs-5"></i>
+                                        </span>
+                                    }
                                     <span class="badge scene-num-badge rounded-pill px-3 py-1 fw-bold">
                                         СЦЕНА @scene.SceneNumber
                                     </span>
 
                                     <select class="act-select-badge shadow-none"
-                                            title="Переместить сцену в другой акт"
+                                            title="@(canEdit ? "Переместить сцену в другой акт" : "Акт сцены")"
+                                            disabled="@(!canEdit)"
                                             draggable="false"
                                             @onclick:stopPropagation="true"
                                             value="@scene.Act.ToString()"
@@ -376,13 +432,22 @@ else
                                         <option value="Act3">Акт III</option>
                                     </select>
 
-                                    <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
-                                            title="Нажмите для смены статуса (Черновик → В работе → Готова)"
-                                            @onclick="() => CycleSceneStatus(scene)"
-                                            @onclick:stopPropagation="true"
-                                            draggable="false">
-                                        <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
-                                    </button>
+                                    @if (canEdit)
+                                    {
+                                        <button type="button" class="btn badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1 shadow-none"
+                                                title="Нажмите для смены статуса (Черновик → В работе → Готова)"
+                                                @onclick="() => CycleSceneStatus(scene)"
+                                                @onclick:stopPropagation="true"
+                                                draggable="false">
+                                            <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1">
+                                            <i class="bi @scene.Status.ToIconClass() me-1"></i>@scene.Status.ToDisplayName()
+                                        </span>
+                                    }
                                 </div>
                             </div>
 
@@ -396,7 +461,7 @@ else
                             }
 
                             <div class="mb-2">
-                                @if (editingTitleSceneId == scene.Id)
+                                @if (editingTitleSceneId == scene.Id && canEdit)
                                 {
                                     <div class="input-group input-group-sm">
                                         <input type="text" class="form-control" @bind="tempTitle" @onkeyup="HandleTitleKeyUp" />
@@ -410,13 +475,16 @@ else
                                         <h5 class="fw-bold text-dark m-0 fs-6 text-truncate" title="@scene.DisplayTitle">
                                             @scene.DisplayTitle
                                         </h5>
-                                        <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none edit-title-btn"
-                                                title="Быстро изменить название"
-                                                @onclick="() => StartInlineTitle(scene)"
-                                                @onclick:stopPropagation="true"
-                                                draggable="false">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
+                                        @if (canEdit)
+                                        {
+                                            <button class="btn btn-sm btn-link text-muted p-0 ms-1 text-decoration-none edit-title-btn"
+                                                    title="Быстро изменить название"
+                                                    @onclick="() => StartInlineTitle(scene)"
+                                                    @onclick:stopPropagation="true"
+                                                    draggable="false">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -437,35 +505,46 @@ else
                             }
                         </div>
 
-                        <div class="card-footer-actions d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
-                                        title="Вставить новую сцену сразу после этой"
-                                        @onclick="() => InsertSceneAfter(scene.SceneNumber)"
+                        @if (canEdit)
+                        {
+                            <div class="card-footer-actions d-flex justify-content-between align-items-center mt-3 pt-2 border-top flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
+                                            title="Вставить новую сцену сразу после этой"
+                                            @onclick="() => InsertSceneAfter(scene.SceneNumber)"
+                                            @onclick:stopPropagation="true"
+                                            draggable="false">
+                                        <i class="bi bi-plus-circle me-1 text-warning"></i>
+                                        <span>Следующая</span>
+                                    </button>
+                                    <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
+                                            title="Клонировать сцену (создать дубликат)"
+                                            @onclick="() => DuplicateScene(scene.Id)"
+                                            @onclick:stopPropagation="true"
+                                            draggable="false">
+                                        <i class="bi bi-copy me-1 text-primary"></i>
+                                        <span>Клонировать</span>
+                                    </button>
+                                </div>
+
+                                <button class="btn btn-action-delete btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center shadow-none"
+                                        @onclick="async () => await DeleteScene(scene.Id)"
                                         @onclick:stopPropagation="true"
-                                        draggable="false">
-                                    <i class="bi bi-plus-circle me-1 text-warning"></i>
-                                    <span>Следующая</span>
-                                </button>
-                                <button class="btn btn-action-subtle btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center"
-                                        title="Клонировать сцену (создать дубликат)"
-                                        @onclick="() => DuplicateScene(scene.Id)"
-                                        @onclick:stopPropagation="true"
-                                        draggable="false">
-                                    <i class="bi bi-copy me-1 text-primary"></i>
-                                    <span>Клонировать</span>
+                                        draggable="false"
+                                        title="Удалить сцену">
+                                    <i class="bi bi-trash3 me-1"></i>
+                                    <span>Удалить</span>
                                 </button>
                             </div>
-
-                            <button class="btn btn-action-delete btn-sm rounded-pill px-3 py-1 d-inline-flex align-items-center shadow-none"
-                                    @onclick="async () => await DeleteScene(scene.Id)"
-                                    @onclick:stopPropagation="true"
-                                    draggable="false"
-                                    title="Удалить сцену">
-                                <i class="bi bi-trash3 me-1"></i>
-                                <span>Удалить</span>
-                            </button>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="card-footer-actions d-flex justify-content-end align-items-center mt-3 pt-2 border-top">
+                                <span class="text-muted extra-small">
+                                    <i class="bi bi-eye me-1"></i>Только чтение
+                                </span>
+                            </div>
+                        }
                     </div>
                 </div>
             }
@@ -478,6 +557,7 @@ else
 
     private List<Scene> scenes = new();
     private bool isLoading = true;
+    private bool canEdit = true;
 
     private bool isActView = true;
     private HashSet<MovieAct> collapsedActs = new();
@@ -526,6 +606,8 @@ else
     private async Task LoadScenes()
     {
         isLoading = true;
+        var currentUserId = AuthService.CurrentUser?.Id ?? 0;
+        canEdit = await ShareService.CanUserEditProjectAsync(ProjectId, currentUserId);
         scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
         isLoading = false;
     }
@@ -564,6 +646,7 @@ else
 
     private void OpenCreatePage(MovieAct? act = null)
     {
+        if (!canEdit) return;
         if (act.HasValue)
         {
             Navigation.NavigateTo($"/projects/{ProjectId}/scenes/new?act={act.Value}");
@@ -576,6 +659,7 @@ else
 
     private void InsertSceneAfter(int sceneNumber)
     {
+        if (!canEdit) return;
         Navigation.NavigateTo($"/projects/{ProjectId}/scenes/new?after={sceneNumber}");
     }
 
@@ -587,6 +671,7 @@ else
 
     private void OnDragStart(DragEventArgs e, Scene scene)
     {
+        if (!canEdit) return;
         draggedScene = scene;
         dropTargetScene = null;
         if (e.DataTransfer != null)
@@ -598,6 +683,7 @@ else
 
     private void OnDragEnter(Scene target)
     {
+        if (!canEdit) return;
         if (draggedScene != null && draggedScene.Id != target.Id)
         {
             dropTargetScene = target;
@@ -606,6 +692,7 @@ else
 
     private void OnDragLeave(Scene target)
     {
+        if (!canEdit) return;
         if (dropTargetScene?.Id == target.Id)
         {
             dropTargetScene = null;
@@ -614,6 +701,7 @@ else
 
     private void OnDragOver(DragEventArgs e)
     {
+        if (!canEdit) return;
         if (e.DataTransfer != null)
         {
             e.DataTransfer.DropEffect = "move";
@@ -622,6 +710,7 @@ else
 
     private async Task OnDrop(Scene targetScene)
     {
+        if (!canEdit) return;
         var item = draggedScene;
         draggedScene = null;
         dropTargetScene = null;
@@ -662,6 +751,7 @@ else
 
     private async Task OnDropOnAct(MovieAct targetAct)
     {
+        if (!canEdit) return;
         var item = draggedScene;
         draggedScene = null;
         dropTargetScene = null;
@@ -686,6 +776,7 @@ else
 
     private async Task OnActSelectChanged(Scene scene, object? value)
     {
+        if (!canEdit) return;
         if (value != null && Enum.TryParse<MovieAct>(value.ToString(), out var newAct))
         {
             if (scene.Act == newAct) return;
@@ -698,6 +789,7 @@ else
 
     private async Task CycleSceneStatus(Scene scene)
     {
+        if (!canEdit) return;
         var nextStatus = scene.Status switch
         {
             SceneStatus.Draft => SceneStatus.InProgress,
@@ -732,6 +824,7 @@ else
 
     private async Task DuplicateScene(int sceneId)
     {
+        if (!canEdit) return;
         var dup = await SceneService.DuplicateSceneAsync(sceneId);
         if (dup != null)
         {
@@ -741,6 +834,7 @@ else
 
     private void StartInlineTitle(Scene scene)
     {
+        if (!canEdit) return;
         editingTitleSceneId = scene.Id;
         tempTitle = scene.Title;
     }
@@ -753,6 +847,7 @@ else
 
     private async Task SaveInlineTitle(Scene scene)
     {
+        if (!canEdit) return;
         scene.Title = tempTitle.Trim();
         await SceneService.UpdateSceneAsync(scene);
         editingTitleSceneId = null;
@@ -760,6 +855,7 @@ else
 
     private async Task HandleTitleKeyUp(KeyboardEventArgs e)
     {
+        if (!canEdit) return;
         if (e.Key == "Enter")
         {
             var target = scenes.FirstOrDefault(s => s.Id == editingTitleSceneId);
@@ -776,6 +872,7 @@ else
 
     private async Task DeleteScene(int id)
     {
+        if (!canEdit) return;
         bool confirmed = await JS.InvokeAsync<bool>("confirm", "Удалить эту сцену? Нумерация остальных сцен автоматически пересчитается.");
         if (!confirmed) return;
 

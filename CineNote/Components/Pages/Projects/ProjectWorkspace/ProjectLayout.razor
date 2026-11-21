@@ -4,6 +4,7 @@
 @using CineNote.Models
 @using CineNote.Services
 @inject MovieProjectService ProjectService
+@inject ProjectShareService ShareService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
@@ -17,15 +18,24 @@
     else if (project == null)
     {
         <div class="text-center py-5">
-            <p class="text-muted">Проект не найден.</p>
+            <p class="text-muted">Проект не найден или у вас нет прав доступа.</p>
             <a href="/projects" class="btn btn-dark mt-2">Вернуться к проектам</a>
         </div>
     }
     else
     {
-        <div class="workspace-header d-flex justify-content-between align-items-start mb-4 pb-3 px-2">
+        <div class="workspace-header d-flex justify-content-between align-items-start mb-4 pb-3 px-2 flex-wrap gap-3">
             <div>
-                <h2 class="workspace-project-title fw-bold m-0">@project.Title</h2>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h2 class="workspace-project-title fw-bold m-0">@project.Title</h2>
+                    @if (!string.IsNullOrEmpty(userRole))
+                    {
+                        <span class="badge @ProjectAccessLevel.ToBadgeClass(userRole) rounded-pill px-3 py-1 fw-semibold" title="@ProjectAccessLevel.ToDescription(userRole)">
+                            <i class="bi @ProjectAccessLevel.ToIconClass(userRole) me-1"></i>
+                            @userRole
+                        </span>
+                    }
+                </div>
 
                 <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
                     @if (!isEditingGenre)
@@ -35,10 +45,13 @@
                             @GetGenreDisplayName(project.Genre)
                         </span>
 
-                        <button class="workspace-edit-genre" @onclick="StartEditingGenre">
-                            <i class="bi bi-pencil"></i>
-                            Изменить жанр
-                        </button>
+                        @if (!isReadOnly)
+                        {
+                            <button class="workspace-edit-genre" @onclick="StartEditingGenre">
+                                <i class="bi bi-pencil"></i>
+                                Изменить жанр
+                            </button>
+                        }
                     }
                     else
                     {
@@ -51,6 +64,13 @@
 
                         <button class="btn workspace-button btn-sm" @onclick="SaveGenre" disabled="@isSavingGenre">Сохранить</button>
                         <button class="btn workspace-cancel-button btn-sm" @onclick="CancelEditingGenre">Отмена</button>
+                    }
+
+                    @if (project.User != null && project.UserId != (AuthService.CurrentUser?.Id ?? 0))
+                    {
+                        <span class="text-muted small ms-2">
+                            <i class="bi bi-person me-1"></i>Владелец: <strong>@project.User.Name</strong>
+                        </span>
                     }
                 </div>
             </div>
@@ -109,6 +129,8 @@
     private bool isEditingGenre;
     private bool isSavingGenre;
     private Genre selectedGenre;
+    private string? userRole;
+    private bool isReadOnly => userRole == ProjectAccessLevel.Viewer;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -125,7 +147,9 @@
             }
         }
 
-        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, AuthService.CurrentUser?.Id ?? 0);
+        int currentUserId = AuthService.CurrentUser?.Id ?? 0;
+        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, currentUserId);
+        userRole = await ShareService.GetUserAccessLevelAsync(ProjectId, currentUserId);
 
         if (project != null)
         {

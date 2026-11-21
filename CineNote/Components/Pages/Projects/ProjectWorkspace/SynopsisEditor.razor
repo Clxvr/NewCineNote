@@ -24,12 +24,15 @@
                 <i class="bi bi-printer me-1"></i> Печать
             </button>
 
-            <button class="btn btn-warning px-4 rounded-3 text-dark fw-bold"
-                    @onclick="SaveContent"
-                    disabled="@isSaving">
-                <i class="bi bi-check-lg me-1"></i>
-                @(isSaving ? "Сохранение..." : "Сохранить синопсис")
-            </button>
+            @if (!IsReadOnly)
+            {
+                <button class="btn btn-warning px-4 rounded-3 text-dark fw-bold"
+                        @onclick="SaveContent"
+                        disabled="@isSaving">
+                    <i class="bi bi-check-lg me-1"></i>
+                    @(isSaving ? "Сохранение..." : "Сохранить синопсис")
+                </button>
+            }
 
         </div>
     </div>
@@ -42,6 +45,9 @@
 
     [Parameter]
     public EventCallback<string> OnSave { get; set; }
+
+    [Parameter]
+    public bool IsReadOnly { get; set; }
 
     private ElementReference editorElement;
     private IJSObjectReference? jsModule;

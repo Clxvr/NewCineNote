@@ -2,6 +2,7 @@
 @using CineNote.Models
 @using CineNote.Services
 @inject MovieProjectService ProjectService
+@inject ProjectShareService ShareService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -17,106 +18,207 @@
     }
     else
     {
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
-                <h2 class="fw-bold mb-1" style="color: #1F2937;">Мои проекты</h2>
-                <p class="text-muted mb-0">Управляйте своими фильмами, сериалами и сценарными набросками</p>
+                <h2 class="fw-bold mb-1" style="color: #1F2937;">Кинопроекты</h2>
+                <p class="text-muted mb-0">Управляйте своими фильмами, сериалами и совместными сценариями</p>
             </div>
             <a href="/projects/create" class="btn btn-warning btn-lg shadow-sm px-4 fw-semibold text-dark">
                 <i class="bi bi-plus-lg me-2"></i>Новый проект
             </a>
         </div>
 
-        @if (userProjects == null)
+        <!-- Переключатель вкладок: Мои проекты / Доступные мне -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div class="btn-group p-1 bg-light border rounded-pill shadow-none" role="group">
+                <button type="button" class="btn rounded-pill px-4 py-2 fw-semibold @(activeTab == "my" ? "btn-dark shadow-sm" : "text-muted")"
+                        @onclick='() => activeTab = "my"'>
+                    <i class="bi bi-folder2-open me-2"></i>Мои проекты
+                    <span class="badge rounded-pill bg-warning text-dark ms-2">@(userProjects?.Count ?? 0)</span>
+                </button>
+                <button type="button" class="btn rounded-pill px-4 py-2 fw-semibold @(activeTab == "shared" ? "btn-dark shadow-sm" : "text-muted")"
+                        @onclick='() => activeTab = "shared"'>
+                    <i class="bi bi-people-fill me-2"></i>Доступные мне
+                    <span class="badge rounded-pill bg-primary ms-2">@(sharedProjects?.Count ?? 0)</span>
+                </button>
+            </div>
+        </div>
+
+        @if (isLoading)
         {
             <div class="text-center py-5">
                 <div class="spinner-border text-warning" role="status"></div>
-                <p class="text-muted mt-2">Загрузка ваших проектов...</p>
+                <p class="text-muted mt-2">Загрузка проектов...</p>
             </div>
         }
-        else if (!userProjects.Any())
+        else if (activeTab == "my")
         {
-            <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-white p-4">
-                <div class="card-body py-4">
-                    <div class="mb-3">
-                        <img src="/images/icons/logo.png" alt="" width="95" height="95" style="object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.1));" />
+            <!-- Вкладка: МОИ ПРОЕКТЫ -->
+            @if (userProjects == null || !userProjects.Any())
+            {
+                <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-white p-4">
+                    <div class="card-body py-4">
+                        <div class="mb-3">
+                            <img src="/images/icons/logo.png" alt="" width="95" height="95" style="object-fit: contain; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.1));" />
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">У вас пока нет проектов</h4>
+                        <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">
+                            Создайте свой первый кинопроект, распишите логлайн и структурируйте историю по сценам.
+                        </p>
+                        <a href="/projects/create" class="btn btn-warning px-4 py-2 fw-semibold text-dark shadow-sm">
+                            <i class="bi bi-plus-lg me-1"></i> Создать первый проект
+                        </a>
                     </div>
-                    <h4 class="fw-bold text-dark mb-2">У вас пока нет проектов</h4>
-                    <p class="text-muted mb-4" style="max-width: 480px; margin: 0 auto;">
-                        Создайте свой первый кинопроект, распишите логлайн и структурируйте историю по сценам.
-                    </p>
-                    <a href="/projects/create" class="btn btn-warning px-4 py-2 fw-semibold text-dark shadow-sm">
-                        <i class="bi bi-plus-lg me-1"></i> Создать первый проект
-                    </a>
                 </div>
-            </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var project in userProjects)
+                    {
+                        <div class="col-md-4 mb-4">
+                            <div class="card project-card p-4 h-100 d-flex flex-column border-0 shadow-sm rounded-4 position-relative overflow-hidden @(draggedProject == project ? "dragging" : "")"
+                                 draggable="true"
+                                 @ondragstart="() => OnDragStart(project)"
+                                 @ondragend="OnDragEnd"
+                                 @ondragover:preventDefault="true"
+                                 @ondragenter="() => OnDragEnter(project)"
+                                 @ondrop="() => OnDrop(project)">
+                                <div class="card-accent-bar"></div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="drag-handle" title="Зажмите для перетаскивания">
+                                            <i class="bi bi-grip-vertical fs-5"></i>
+                                        </span>
+                                        <span class="badge px-3 py-2 rounded-pill small fw-semibold genre-badge">
+                                            <i class="bi bi-tag-fill me-1"></i> @GetGenreDisplayName(project.Genre)
+                                        </span>
+                                    </div>
+                                    <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none" @onclick="async () => await DeleteProject(project.Id)" title="Удалить проект">
+                                        <i class="bi bi-trash3 me-1"></i>Удалить
+                                    </button>
+                                </div>
+
+                                <h5 class="card-title fw-bold mb-3 text-center">@project.Title</h5>
+
+                                <div class="mb-3 text-muted small author-info">
+                                    <div>
+                                        <i class="bi bi-person me-1"></i> Автор: <strong>@(project.User?.Name ?? (project.UserId == AuthService.CurrentUser?.Id ? AuthService.CurrentUser.Name : "Не указан"))</strong>
+                                    </div>
+                                    <div class="mt-1">
+                                        <i class="bi bi-people me-1"></i> Соавторы:
+                                        @(project.ProjectShares != null && project.ProjectShares.Any(ps => ps.SharedWithUser != null)
+                                            ? string.Join(", ", project.ProjectShares.Where(ps => ps.SharedWithUser != null).Select(ps => ps.SharedWithUser!.Name))
+                                            : "отсутствуют")
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 flex-grow-1">
+                                    <span class="fw-semibold text-dark small d-block mb-1">Краткое описание (логлайн):</span>
+                                    <p class="card-text text-muted small lh-base mb-0">
+                                        @(string.IsNullOrEmpty(project.Logline) ? "отсутствует." : project.Logline)
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                    <a href="/projects/@project.Id" class="btn btn-dark btn-sm flex-grow-1 py-2 fw-semibold open-btn">
+                                        <i class="bi bi-folder2-open me-1"></i> Открыть
+                                    </a>
+                                    <a href="/projects/@project.Id/share" class="btn btn-outline-warning btn-sm py-2 px-3 fw-semibold text-dark" title="Управление соавторами">
+                                        <i class="bi bi-people-fill"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         }
         else
         {
-            <div class="row">
-                @foreach (var project in userProjects)
-                {
-                    <div class="col-md-4 mb-4">
-                        <div class="card project-card p-4 h-100 d-flex flex-column border-0 shadow-sm rounded-4 position-relative overflow-hidden @(draggedProject == project ? "dragging" : "")"
-                             draggable="true"
-                             @ondragstart="() => OnDragStart(project)"
-                             @ondragend="OnDragEnd"
-                             @ondragover:preventDefault="true"
-                             @ondragenter="() => OnDragEnter(project)"
-                             @ondrop="() => OnDrop(project)">
-                            <div class="card-accent-bar"></div>
+            <!-- Вкладка: ДОСТУПНЫЕ МНЕ (Совместная работа) -->
+            @if (sharedProjects == null || !sharedProjects.Any())
+            {
+                <div class="card text-center py-5 border-0 shadow-sm rounded-4 bg-white p-4">
+                    <div class="card-body py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-people-fill text-warning" style="font-size: 4rem;"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">Нет совместных проектов</h4>
+                        <p class="text-muted mb-3" style="max-width: 480px; margin: 0 auto;">
+                            Здесь будут отображаться фильмы и сценарии, к которым коллеги предоставили вам доступ.
+                        </p>
+                        <p class="text-muted small">
+                            Чтобы начать совместную работу, попросите автора фильма указать ваш Email (<strong>@AuthService.CurrentUser.Email</strong>) в разделе «Доступ».
+                        </p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var project in sharedProjects)
+                    {
+                        var myShare = project.ProjectShares?.FirstOrDefault(ps => ps.SharedWithUserId == AuthService.CurrentUser?.Id);
+                        string accessLevel = myShare?.AccessLevel ?? ProjectAccessLevel.Viewer;
 
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="drag-handle" title="Зажмите для перетаскивания">
-                                        <i class="bi bi-grip-vertical fs-5"></i>
-                                    </span>
+                        <div class="col-md-4 mb-4">
+                            <div class="card project-card p-4 h-100 d-flex flex-column border-0 shadow-sm rounded-4 position-relative overflow-hidden shared-project-card">
+                                <div class="card-accent-bar" style="background: @(accessLevel == ProjectAccessLevel.Editor ? "#3B82F6" : "#6B7280");"></div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-1">
                                     <span class="badge px-3 py-2 rounded-pill small fw-semibold genre-badge">
                                         <i class="bi bi-tag-fill me-1"></i> @GetGenreDisplayName(project.Genre)
                                     </span>
+                                    <span class="badge @ProjectAccessLevel.ToBadgeClass(accessLevel) rounded-pill px-3 py-1 small fw-semibold">
+                                        <i class="bi @ProjectAccessLevel.ToIconClass(accessLevel) me-1"></i> @accessLevel
+                                    </span>
                                 </div>
-                                <button class="btn badge px-3 py-2 rounded-pill small fw-semibold delete-badge shadow-none" @onclick="async () => await DeleteProject(project.Id)" title="Удалить проект">
-                                    <i class="bi bi-trash3 me-1"></i>Удалить
-                                </button>
-                            </div>
 
-                            <h5 class="card-title fw-bold mb-3 text-center">@project.Title</h5>
+                                <h5 class="card-title fw-bold mb-3 text-center">@project.Title</h5>
 
-                            <div class="mb-3 text-muted small author-info">
-                                <div>
-                                    <i class="bi bi-person me-1"></i> Автор: <strong>@(project.User?.Name ?? (project.UserId == AuthService.CurrentUser?.Id ? AuthService.CurrentUser.Name : "Не указан"))</strong>
+                                <div class="mb-3 text-muted small author-info">
+                                    <div>
+                                        <i class="bi bi-person-fill text-warning me-1"></i> Владелец: <strong>@(project.User?.Name ?? "Не указан")</strong>
+                                    </div>
+                                    <div class="mt-1">
+                                        <i class="bi bi-envelope me-1"></i> Email автора: @(project.User?.Email ?? "—")
+                                    </div>
                                 </div>
-                                <div class="mt-1">
-                                    <i class="bi bi-people me-1"></i> Соавторы:
-                                    @(project.ProjectShares != null && project.ProjectShares.Any(ps => ps.SharedWithUser != null)
-                                        ? string.Join(", ", project.ProjectShares.Where(ps => ps.SharedWithUser != null).Select(ps => ps.SharedWithUser!.Name))
-                                        : "отсутствуют")
+
+                                <div class="mb-3 flex-grow-1">
+                                    <span class="fw-semibold text-dark small d-block mb-1">Краткое описание (логлайн):</span>
+                                    <p class="card-text text-muted small lh-base mb-0">
+                                        @(string.IsNullOrEmpty(project.Logline) ? "отсутствует." : project.Logline)
+                                    </p>
                                 </div>
-                            </div>
 
-                            <div class="mb-3 flex-grow-1">
-                                <span class="fw-semibold text-dark small d-block mb-1">Краткое описание (логлайн):</span>
-                                <p class="card-text text-muted small lh-base mb-0">
-                                    @(string.IsNullOrEmpty(project.Logline) ? "отсутствует." : project.Logline)
-                                </p>
-                            </div>
-
-                            <div class="mt-4 pt-3 border-top">
-                                <a href="/projects/@project.Id" class="btn btn-dark btn-sm w-100 py-2 fw-semibold open-btn">
-                                    <i class="bi bi-folder2-open me-1"></i> Открыть
-                                </a>
+                                <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                    <a href="/projects/@project.Id" class="btn btn-dark btn-sm flex-grow-1 py-2 fw-semibold open-btn">
+                                        <i class="bi bi-folder2-open me-1"></i> Открыть
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm py-2 px-3 fw-semibold"
+                                            @onclick="async () => await LeaveSharedProject(project)"
+                                            title="Покинуть совместный проект">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
+            }
         }
     }
 </div>
 
 @code {
     private List<MovieProject>? userProjects;
+    private List<MovieProject>? sharedProjects;
     private MovieProject? draggedProject;
+    private bool isLoading = true;
+    private string activeTab = "my"; // "my" | "shared"
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,10 +227,14 @@
 
     private async Task LoadProjects()
     {
+        isLoading = true;
         if (AuthService.IsLoggedIn && AuthService.CurrentUser != null)
         {
-            userProjects = await ProjectService.GetProjectsByUserIdAsync(AuthService.CurrentUser.Id);
+            int userId = AuthService.CurrentUser.Id;
+            userProjects = await ProjectService.GetProjectsByUserIdAsync(userId);
+            sharedProjects = await ShareService.GetSharedProjectsForUserAsync(userId);
         }
+        isLoading = false;
     }
 
     private async Task DeleteProject(int id)
@@ -146,6 +252,20 @@
         }
     }
 
+    private async Task LeaveSharedProject(MovieProject project)
+    {
+        if (AuthService.CurrentUser == null) return;
+
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"Покинуть совместный проект «{project.Title}»? Вы потеряете доступ к материалам фильма.");
+        if (!confirmed) return;
+
+        var result = await ShareService.LeaveProjectAsync(project.Id, AuthService.CurrentUser.Id);
+        if (result.Success)
+        {
+            await LoadProjects();
+        }
+    }
+
     private void OnDragStart(MovieProject project)
     {
         draggedProject = project;
@@ -153,10 +273,10 @@
 
     private void OnDragEnter(MovieProject targetProject)
     {
-        if (draggedProject == null || draggedProject == targetProject)
+        if (draggedProject == null || draggedProject == targetProject || userProjects == null)
             return;
 
-        int originalIndex = userProjects!.IndexOf(draggedProject);
+        int originalIndex = userProjects.IndexOf(draggedProject);
         int targetIndex = userProjects.IndexOf(targetProject);
 
         if (originalIndex != -1 && targetIndex != -1)
@@ -169,13 +289,13 @@
 
     private async Task OnDrop(MovieProject targetProject)
     {
-        if (draggedProject == null || AuthService.CurrentUser == null)
+        if (draggedProject == null || AuthService.CurrentUser == null || userProjects == null)
         {
             draggedProject = null;
             return;
         }
 
-        var orderedIds = userProjects!.Select(p => p.Id).ToList();
+        var orderedIds = userProjects.Select(p => p.Id).ToList();
         await ProjectService.UpdateProjectsOrderAsync(orderedIds, AuthService.CurrentUser.Id);
 
         draggedProject = null;

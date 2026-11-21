@@ -5,6 +5,8 @@
 @using CineNote.Services
 @inject SceneService SceneService
 @inject CharacterService CharacterService
+@inject ProjectShareService ShareService
+@inject AuthService AuthService
 @inject NavigationManager Navigation
 
 <div class="d-flex flex-column h-100">
@@ -18,10 +20,30 @@
                 <p class="text-muted small mb-0">Полноэкранный сценарный редактор</p>
             </div>
         </div>
-        <button class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm" @onclick="SaveScene" disabled="@isSaving">
-            <i class="bi bi-check-lg me-1"></i> @(isSaving ? "Сохранение..." : "Сохранить и выйти")
-        </button>
+        @if (canEdit)
+        {
+            <button class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm" @onclick="SaveScene" disabled="@isSaving">
+                <i class="bi bi-check-lg me-1"></i> @(isSaving ? "Сохранение..." : "Сохранить и выйти")
+            </button>
+        }
+        else
+        {
+            <span class="badge bg-secondary p-2 px-3 rounded-pill fs-6 fw-normal">
+                <i class="bi bi-eye me-1"></i>Только чтение
+            </span>
+        }
     </div>
+
+    @if (!canEdit && !isLoading)
+    {
+        <div class="alert alert-secondary d-flex align-items-center gap-3 rounded-4 mb-4 border-0 bg-white shadow-sm p-3">
+            <i class="bi bi-shield-lock-fill text-warning fs-3"></i>
+            <div>
+                <span class="fw-bold text-dark d-block">Режим совместного чтения</span>
+                <span class="text-muted small">Вы просматриваете сцену с правами «Читатель». Изменение параметров, текста и привязки персонажей отключены владельцем проекта.</span>
+            </div>
+        </div>
+    }
 
     @if (isLoading)
     {
@@ -38,13 +60,13 @@
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-dark">Название сцены (необязательно)</label>
-                        <InputText @bind-Value="scene.Title" class="form-control border-0 shadow-sm rounded-3" placeholder="Например: Знакомство в кафе или Побег через крышу" />
+                        <InputText @bind-Value="scene.Title" disabled="@(!canEdit)" class="form-control border-0 shadow-sm rounded-3" placeholder="Например: Знакомство в кафе или Побег через крышу" />
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold small text-dark">ИНТ/НАТ</label>
-                            <InputSelect @bind-Value="scene.LocationType" class="form-select border-0 shadow-sm rounded-3">
+                            <InputSelect @bind-Value="scene.LocationType" disabled="@(!canEdit)" class="form-select border-0 shadow-sm rounded-3">
                                 @foreach (LocationType loc in Enum.GetValues(typeof(LocationType)))
                                 {
                                     <option value="@loc">@loc.ToDisplayName()</option>
@@ -53,11 +75,11 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small text-dark">Объект (Локация)</label>
-                            <InputText @bind-Value="scene.LocationName" class="form-control border-0 shadow-sm rounded-3 text-uppercase" placeholder="КВАРТИРА ГЕРОЯ" />
+                            <InputText @bind-Value="scene.LocationName" disabled="@(!canEdit)" class="form-control border-0 shadow-sm rounded-3 text-uppercase" placeholder="КВАРТИРА ГЕРОЯ" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold small text-dark">Время суток</label>
-                            <InputSelect @bind-Value="scene.TimeOfDay" class="form-select border-0 shadow-sm rounded-3">
+                            <InputSelect @bind-Value="scene.TimeOfDay" disabled="@(!canEdit)" class="form-select border-0 shadow-sm rounded-3">
                                 @foreach (TimeOfDay time in Enum.GetValues(typeof(TimeOfDay)))
                                 {
                                     <option value="@time">@time.ToDisplayName()</option>
@@ -71,7 +93,7 @@
                             <label class="form-label fw-semibold small text-dark">
                                 <i class="bi bi-folder2 me-1 text-warning"></i>Акт сценария
                             </label>
-                            <InputSelect @bind-Value="scene.Act" class="form-select border-0 shadow-sm rounded-3">
+                            <InputSelect @bind-Value="scene.Act" disabled="@(!canEdit)" class="form-select border-0 shadow-sm rounded-3">
                                 @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
                                 {
                                     <option value="@act">@act.ToDisplayName()</option>
@@ -82,7 +104,7 @@
                             <label class="form-label fw-semibold small text-dark">
                                 <i class="bi bi-hourglass-split me-1 text-warning"></i>Статус готовности
                             </label>
-                            <InputSelect @bind-Value="scene.Status" class="form-select border-0 shadow-sm rounded-3">
+                            <InputSelect @bind-Value="scene.Status" disabled="@(!canEdit)" class="form-select border-0 shadow-sm rounded-3">
                                 @foreach (SceneStatus status in Enum.GetValues(typeof(SceneStatus)))
                                 {
                                     <option value="@status">@status.ToDisplayName()</option>
@@ -93,7 +115,7 @@
                             <label class="form-label fw-semibold small text-dark">
                                 <i class="bi bi-diagram-3 me-1 text-warning"></i>Поворотная точка
                             </label>
-                            <InputSelect @bind-Value="scene.DramaticStructure" class="form-select border-0 shadow-sm rounded-3">
+                            <InputSelect @bind-Value="scene.DramaticStructure" disabled="@(!canEdit)" class="form-select border-0 shadow-sm rounded-3">
                                 @foreach (DramaticStructure marker in Enum.GetValues(typeof(DramaticStructure)))
                                 {
                                     <option value="@marker">@marker.ToDisplayName()</option>
@@ -108,7 +130,16 @@
                         <h5 class="fw-bold text-dark m-0">Описание действия и диалоги</h5>
                     </div>
                     <div class="card-body p-4 d-flex flex-column">
-                        <QuillEditor @ref="actionEditor" InitialHtml="@scene.ActionDescription" MinHeight="400px" />
+                        @if (canEdit)
+                        {
+                            <QuillEditor @ref="actionEditor" InitialHtml="@scene.ActionDescription" MinHeight="400px" />
+                        }
+                        else
+                        {
+                            <div class="p-3 bg-light rounded-3 flex-grow-1 overflow-auto" style="min-height: 400px; white-space: pre-wrap;">
+                                @((MarkupString)(string.IsNullOrWhiteSpace(scene.ActionDescription) ? "<span class='text-muted'>Описание действия отсутствует</span>" : scene.ActionDescription))
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -132,6 +163,7 @@
                                 <div class="form-check p-3 border rounded-3 bg-light d-flex align-items-center gap-2 m-0">
                                     <input class="form-check-input ms-0" type="checkbox"
                                            id="char-@character.Id"
+                                           disabled="@(!canEdit)"
                                            checked="@selectedCharacterIds.Contains(character.Id)"
                                            @onchange="(e) => OnCharacterCheckboxChanged(character.Id, e.Value)" />
                                     <label class="form-check-label fw-semibold text-dark w-100 cursor-pointer" for="char-@character.Id">
@@ -159,10 +191,20 @@
     private QuillEditor? actionEditor;
     private bool isLoading = true;
     private bool isSaving = false;
+    private bool canEdit = true;
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
+
+        var currentUserId = AuthService.CurrentUser?.Id ?? 0;
+        canEdit = await ShareService.CanUserEditProjectAsync(ProjectId, currentUserId);
+
+        if (!canEdit && !SceneId.HasValue)
+        {
+            Navigation.NavigateTo($"/projects/{ProjectId}/scenes");
+            return;
+        }
 
         allProjectCharacters = await CharacterService.GetCharactersByProjectIdAsync(ProjectId);
 
@@ -197,6 +239,8 @@
 
     private void OnCharacterCheckboxChanged(int characterId, object? isChecked)
     {
+        if (!canEdit) return;
+
         if (isChecked is bool selected && selected)
         {
             selectedCharacterIds.Add(characterId);
@@ -209,6 +253,8 @@
 
     private async Task SaveScene()
     {
+        if (!canEdit) return;
+
         isSaving = true;
 
         if (actionEditor != null)

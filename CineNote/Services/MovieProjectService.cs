@@ -48,7 +48,9 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
 
             return await context.MovieProjects
-                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+                .Include(p => p.User)
+                .Include(p => p.ProjectShares).ThenInclude(ps => ps.SharedWithUser)
+                .FirstOrDefaultAsync(p => p.Id == id && (p.UserId == userId || p.ProjectShares.Any(ps => ps.SharedWithUserId == userId)));
         }
 
         public async Task<bool> UpdateProjectAsync(MovieProject project, int userId)
@@ -56,7 +58,9 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
 
             var existingProject = await context.MovieProjects
-                .FirstOrDefaultAsync(p => p.Id == project.Id && p.UserId == userId);
+                .Include(p => p.ProjectShares)
+                .FirstOrDefaultAsync(p => p.Id == project.Id &&
+                    (p.UserId == userId || p.ProjectShares.Any(ps => ps.SharedWithUserId == userId && ps.AccessLevel == ProjectAccessLevel.Editor)));
 
             if (existingProject == null)
                 return false;
@@ -71,7 +75,9 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
 
             var project = await context.MovieProjects
-                .FirstOrDefaultAsync(p => p.Id == projectId && p.UserId == userId);
+                .Include(p => p.ProjectShares)
+                .FirstOrDefaultAsync(p => p.Id == projectId &&
+                    (p.UserId == userId || p.ProjectShares.Any(ps => ps.SharedWithUserId == userId && ps.AccessLevel == ProjectAccessLevel.Editor)));
 
             if (project == null)
                 return false;
@@ -124,9 +130,11 @@ namespace CineNote.Services
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var project = await context.MovieProjects.FirstOrDefaultAsync(
-                p => p.Id == projectId && p.UserId == userId
-            );
+            var project = await context.MovieProjects
+                .Include(p => p.ProjectShares)
+                .FirstOrDefaultAsync(
+                    p => p.Id == projectId && (p.UserId == userId || p.ProjectShares.Any(ps => ps.SharedWithUserId == userId && ps.AccessLevel == ProjectAccessLevel.Editor))
+                );
 
             if (project == null)
             {
@@ -149,9 +157,11 @@ namespace CineNote.Services
 
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var project = await context.MovieProjects.FirstOrDefaultAsync(
-                p => p.Id == projectId && p.UserId == userId
-            );
+            var project = await context.MovieProjects
+                .Include(p => p.ProjectShares)
+                .FirstOrDefaultAsync(
+                    p => p.Id == projectId && (p.UserId == userId || p.ProjectShares.Any(ps => ps.SharedWithUserId == userId && ps.AccessLevel == ProjectAccessLevel.Editor))
+                );
 
             if (project == null)
             {
