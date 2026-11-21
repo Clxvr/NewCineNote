@@ -11,7 +11,7 @@
 
 <div class="share-page-container">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="section-header">
         <div class="d-flex align-items-center gap-3">
             <div class="share-header-icon rounded-4 d-flex align-items-center justify-content-center shadow-sm">
                 <i class="bi bi-people-fill fs-3 text-warning"></i>
@@ -54,7 +54,7 @@
 
         @if (isOwner)
         {
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4 invite-card">
+            <div class="cine-card mb-4 invite-card">
                 <h5 class="fw-bold text-dark mb-2">
                     <i class="bi bi-person-plus me-2 text-warning"></i>Пригласить соавтора
                 </h5>
@@ -126,7 +126,7 @@
         }
         else
         {
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-light mb-4">
+            <div class="cine-card bg-light p-3 mb-4">
                 <div class="d-flex align-items-center gap-3">
                     <i class="bi bi-info-circle-fill text-primary fs-4"></i>
                     <div class="small text-muted">
@@ -136,7 +136,7 @@
             </div>
         }
 
-        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <div class="cine-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark m-0">
                     <i class="bi bi-people me-2 text-warning"></i>Участники проекта (@(1 + shares.Count))

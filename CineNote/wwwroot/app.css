@@ -188,3 +188,113 @@ button {
     margin-left: 4cm !important;
     text-align: left !important;
 }
+
+/* ==========================================================================
+   Компонентные классы CineNote (замена длинных наборов утилитных классов)
+   ========================================================================== */
+
+/* Блоки пустого состояния и информационные карточки */
+.empty-state-box {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background-color: #f8f9fa;
+}
+
+.empty-state-card {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    background-color: #f8f9fa;
+}
+
+/* Карточки контента */
+.cine-card {
+    background-color: #ffffff;
+    border: none !important;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-soft);
+    padding: 1.5rem;
+}
+
+.cine-card-lg {
+    background-color: #ffffff;
+    border: none !important;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-soft);
+    padding: 2.5rem;
+}
+
+/* Баннер режима совместного доступа (только чтение) */
+.cine-alert-readonly {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: none;
+    background-color: #ffffff;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 1.5rem;
+}
+
+/* Заголовок страницы или секции */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Группа переключателей (таблетка) */
+.pill-tab-group {
+    display: inline-flex;
+    padding: 0.25rem;
+    background-color: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 50rem;
+}
+
+/* Элемент списка с чекбоксом */
+.select-check-card {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa;
+    transition: background-color 0.15s ease;
+}
+
+.select-check-card:hover {
+    background-color: #f1f3f5;
+}
+
+/* Основная акцентная кнопка формы */
+.btn-cine-submit {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-weight: 600;
+    color: #ffffff !important;
+    background-color: var(--primary-amber) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 1rem;
+    transition: all 0.2s ease !important;
+}
+
+.btn-cine-submit:hover {
+    background-color: var(--primary-amber-hover) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}

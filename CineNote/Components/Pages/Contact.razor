@@ -19,7 +19,7 @@
         </p>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+    <div class="cine-card-lg">
         @if (isSubmitted)
         {
             <div class="text-center py-4">
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-warning w-100 py-2 fw-semibold rounded-3 shadow-sm text-dark"
+                <button type="submit" class="btn btn-cine-submit text-dark"
                         disabled="@(isSending ? "disabled" : null)">
                     @(isSending ? "Отправка..." : "Отправить сообщение")
                 </button>

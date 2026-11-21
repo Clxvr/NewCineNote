@@ -8,7 +8,7 @@
 @inject EmailService EmailService
 
 <div class="container mt-5 register-container" style="max-width: 450px;">
-    <div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="cine-card">
         <h3 class="text-center fw-bold mb-4" style="color: #1F2937;">Регистрация в CineNote</h3>
 
         <EditForm EditContext="@editContext" OnSubmit="HandleRegistration">
@@ -71,7 +71,7 @@
                 <div class="alert alert-success py-2 small mb-3">@successMessage</div>
             }
 
-            <button type="submit" class="btn w-100 py-2 fw-semibold mb-3 shadow-sm" style="background-color: #F59E0B; border: none; color: #fff;">
+            <button type="submit" class="btn btn-cine-submit">
                 Зарегистрироваться
             </button>
 

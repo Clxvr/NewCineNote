@@ -6,7 +6,7 @@
 @inject NavigationManager Navigation
 
 <div class="container mt-5" style="max-width: 450px;">
-    <div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="cine-card">
         <h3 class="text-center fw-bold mb-4" style="color: #1F2937;">Вход в CineNote</h3>
 
         <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
@@ -40,7 +40,7 @@
                 </div>
             }
 
-            <button type="submit" class="btn w-100 py-2 fw-semibold mb-3 shadow-sm" style="background-color: #F59E0B; border: none; color: #fff;">
+            <button type="submit" class="btn btn-cine-submit">
                 Войти
             </button>
 
