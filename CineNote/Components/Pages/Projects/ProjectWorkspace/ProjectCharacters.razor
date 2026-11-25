@@ -61,8 +61,53 @@ else if (!characters.Any())
 }
 else
 {
-    <div class="row g-3">
-        @foreach (var hero in characters)
+    <div class="search-filter-bar">
+        <div class="search-input-wrapper">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text"
+                   class="form-control"
+                   placeholder="Поиск персонажа по имени или описанию..."
+                   @bind="searchQuery"
+                   @bind:event="oninput" />
+            @if (!string.IsNullOrEmpty(searchQuery))
+            {
+                <button type="button" class="search-clear-btn" @onclick="() => searchQuery = string.Empty" title="Очистить поиск">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            }
+        </div>
+
+        <select class="form-select filter-select" @bind="selectedRoleFilter" aria-label="Фильтр по роли">
+            <option value="">Все роли</option>
+            @foreach (CharacterRole role in Enum.GetValues(typeof(CharacterRole)))
+            {
+                <option value="@role">@role.ToDisplayName()</option>
+            }
+        </select>
+
+        @if (HasActiveFilters)
+        {
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2" @onclick="ResetFilters">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Сбросить
+            </button>
+        }
+    </div>
+
+    @if (!FilteredCharacters.Any())
+    {
+        <div class="empty-state-card">
+            <i class="bi bi-search text-warning fs-1 d-block mb-2"></i>
+            <h5 class="fw-bold text-dark mb-1">Персонажи не найдены</h5>
+            <p class="text-muted small mb-3">Попробуйте изменить запрос или выбрать другую роль.</p>
+            <button type="button" class="btn btn-outline-dark btn-sm rounded-3 px-3" @onclick="ResetFilters">
+                Сбросить фильтры
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var hero in FilteredCharacters)
         {
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="cine-card h-100 p-3 position-relative overflow-hidden character-card">
@@ -102,6 +147,7 @@ else
             </div>
         }
     </div>
+    }
 }
 
 @if (showModal)
@@ -155,6 +201,40 @@ else
     private bool isLoading = true;
     private bool showModal = false;
     private bool canEdit = true;
+    private string searchQuery = string.Empty;
+    private string selectedRoleFilter = string.Empty;
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrEmpty(selectedRoleFilter);
+
+    private IEnumerable<Character> FilteredCharacters
+    {
+        get
+        {
+            IEnumerable<Character> query = characters;
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var term = searchQuery.Trim();
+                query = query.Where(c =>
+                    c.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(c.Description) && c.Description.Contains(term, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            if (!string.IsNullOrEmpty(selectedRoleFilter) && Enum.TryParse<CharacterRole>(selectedRoleFilter, out var role))
+            {
+                query = query.Where(c => c.Role == role);
+            }
+
+            return query;
+        }
+    }
+
+    private void ResetFilters()
+    {
+        searchQuery = string.Empty;
+        selectedRoleFilter = string.Empty;
+    }
 
     protected override async Task OnInitializedAsync()
     {

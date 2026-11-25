@@ -43,6 +43,38 @@
             </div>
         </div>
 
+        <div class="search-filter-bar">
+            <div class="search-input-wrapper">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text"
+                       class="form-control"
+                       placeholder="Поиск проектов по названию..."
+                       @bind="searchQuery"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    <button type="button" class="search-clear-btn" @onclick="() => searchQuery = string.Empty" title="Очистить поиск">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                }
+            </div>
+
+            <select class="form-select filter-select" @bind="selectedGenreFilter" aria-label="Фильтр по жанру">
+                <option value="">Все жанры</option>
+                @foreach (Genre genre in Enum.GetValues(typeof(Genre)))
+                {
+                    <option value="@genre">@genre.ToDisplayName()</option>
+                }
+            </select>
+
+            @if (HasActiveFilters)
+            {
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2" @onclick="ResetFilters">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Сбросить
+                </button>
+            }
+        </div>
+
         @if (isLoading)
         {
             <div class="text-center py-5">
@@ -70,14 +102,25 @@
                     </div>
                 </div>
             }
+            else if (!FilteredUserProjects.Any())
+            {
+                <div class="empty-state-card bg-white shadow-sm border-0">
+                    <i class="bi bi-search text-warning fs-1 d-block mb-2"></i>
+                    <h5 class="fw-bold text-dark mb-1">Проекты не найдены</h5>
+                    <p class="text-muted small mb-3">Попробуйте изменить поисковый запрос или выбрать другой жанр.</p>
+                    <button type="button" class="btn btn-outline-dark btn-sm rounded-3 px-3" @onclick="ResetFilters">
+                        Сбросить фильтры
+                    </button>
+                </div>
+            }
             else
             {
                 <div class="row">
-                    @foreach (var project in userProjects)
+                    @foreach (var project in FilteredUserProjects)
                     {
                         <div class="col-md-4 mb-4">
                             <div class="cine-card project-card h-100 d-flex flex-column position-relative overflow-hidden @(draggedProject == project ? "dragging" : "")"
-                                 draggable="true"
+                                 draggable="@(!HasActiveFilters ? "true" : "false")"
                                  @ondragstart="() => OnDragStart(project)"
                                  @ondragend="OnDragEnd"
                                  @ondragover:preventDefault="true"
@@ -87,9 +130,12 @@
 
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="drag-handle" title="Зажмите для перетаскивания">
-                                            <i class="bi bi-grip-vertical fs-5"></i>
-                                        </span>
+                                        @if (!HasActiveFilters)
+                                        {
+                                            <span class="drag-handle" title="Зажмите для перетаскивания">
+                                                <i class="bi bi-grip-vertical fs-5"></i>
+                                            </span>
+                                        }
                                         <span class="badge px-3 py-2 rounded-pill small fw-semibold genre-badge">
                                             <i class="bi bi-tag-fill me-1"></i> @project.Genre.ToDisplayName()
                                         </span>
@@ -151,10 +197,21 @@
                     </div>
                 </div>
             }
+            else if (!FilteredSharedProjects.Any())
+            {
+                <div class="empty-state-card bg-white shadow-sm border-0">
+                    <i class="bi bi-search text-warning fs-1 d-block mb-2"></i>
+                    <h5 class="fw-bold text-dark mb-1">Совместные проекты не найдены</h5>
+                    <p class="text-muted small mb-3">Попробуйте изменить поисковый запрос или выбрать другой жанр.</p>
+                    <button type="button" class="btn btn-outline-dark btn-sm rounded-3 px-3" @onclick="ResetFilters">
+                        Сбросить фильтры
+                    </button>
+                </div>
+            }
             else
             {
                 <div class="row">
-                    @foreach (var project in sharedProjects)
+                    @foreach (var project in FilteredSharedProjects)
                     {
                         var myShare = project.ProjectShares?.FirstOrDefault(ps => ps.SharedWithUserId == AuthService.CurrentUser?.Id);
                         string accessLevel = myShare?.AccessLevel ?? ProjectAccessLevel.Viewer;
@@ -215,6 +272,41 @@
     private MovieProject? draggedProject;
     private bool isLoading = true;
     private string activeTab = "my";
+    private string searchQuery = string.Empty;
+    private string selectedGenreFilter = string.Empty;
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrWhiteSpace(searchQuery) || !string.IsNullOrEmpty(selectedGenreFilter);
+
+    private IEnumerable<MovieProject> FilteredUserProjects => FilterProjects(userProjects);
+    private IEnumerable<MovieProject> FilteredSharedProjects => FilterProjects(sharedProjects);
+
+    private IEnumerable<MovieProject> FilterProjects(List<MovieProject>? source)
+    {
+        if (source == null)
+            return Enumerable.Empty<MovieProject>();
+
+        IEnumerable<MovieProject> query = source;
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            var term = searchQuery.Trim();
+            query = query.Where(p => p.Title.Contains(term, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrEmpty(selectedGenreFilter) && Enum.TryParse<Genre>(selectedGenreFilter, out var genre))
+        {
+            query = query.Where(p => p.Genre == genre);
+        }
+
+        return query;
+    }
+
+    private void ResetFilters()
+    {
+        searchQuery = string.Empty;
+        selectedGenreFilter = string.Empty;
+    }
 
     protected override async Task OnInitializedAsync()
     {
