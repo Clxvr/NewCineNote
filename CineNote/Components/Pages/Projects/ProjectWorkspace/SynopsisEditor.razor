@@ -54,11 +54,13 @@
 
     private bool isSaving;
     private string saveMessage = string.Empty;
+    private string lastSavedContent = string.Empty;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            lastSavedContent = NormalizeHtml(InitialContent);
             try
             {
                 jsModule = await JS.InvokeAsync<IJSObjectReference>(
@@ -97,6 +99,7 @@
                 "getContent", editorElement);
 
             await OnSave.InvokeAsync(content);
+            lastSavedContent = NormalizeHtml(content);
 
             saveMessage = "Синопсис сохранён.";
         }
@@ -108,6 +111,29 @@
         {
             isSaving = false;
         }
+    }
+
+    public async Task<bool> HasUnsavedChangesAsync()
+    {
+        if (IsReadOnly || jsModule == null)
+            return false;
+
+        try
+        {
+            string current = await jsModule.InvokeAsync<string>("getContent", editorElement);
+            return NormalizeHtml(current) != lastSavedContent;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string NormalizeHtml(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html) || html == "<p><br></p>")
+            return string.Empty;
+        return html.Trim();
     }
 
     private async Task PrintContent()

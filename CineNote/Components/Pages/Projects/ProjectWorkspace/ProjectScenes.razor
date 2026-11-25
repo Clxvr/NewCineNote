@@ -565,25 +565,32 @@ else
                     <i class="bi bi-geo-alt me-1 text-warning"></i> @scene.Slugline
                 </div>
 
-                @if (scene.SceneCharacters != null && scene.SceneCharacters.Any())
+                @if ((scene.SceneCharacters != null && scene.SceneCharacters.Any()) || (scene.SceneProps != null && scene.SceneProps.Any()))
                 {
-                    <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
-                        <span class="text-muted small me-1">Герои:</span>
-                        @foreach (var sc in scene.SceneCharacters)
-                        {
-                            <span class="badge bg-light text-dark border small rounded-pill px-2 py-1">@sc.Character?.Name</span>
-                        }
-                    </div>
-                }
+                    <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center justify-content-between">
+                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                            @if (scene.SceneCharacters != null && scene.SceneCharacters.Any())
+                            {
+                                var visibleChars = scene.SceneCharacters.Take(2).ToList();
+                                int extraChars = scene.SceneCharacters.Count - visibleChars.Count;
+                                string allCharNames = string.Join(", ", scene.SceneCharacters.Select(sc => sc.Character?.Name));
 
-                @if (scene.SceneProps != null && scene.SceneProps.Any())
-                {
-                    <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
-                        <span class="text-muted small me-1">Реквизит:</span>
-                        @foreach (var sp in scene.SceneProps)
+                                @foreach (var sc in visibleChars)
+                                {
+                                    <span class="badge bg-light text-dark border small rounded-pill px-2 py-1">@sc.Character?.Name</span>
+                                }
+                                @if (extraChars > 0)
+                                {
+                                    <span class="badge bg-light text-muted border small rounded-pill px-2 py-1" title="@allCharNames">+@extraChars</span>
+                                }
+                            }
+                        </div>
+
+                        @if (scene.SceneProps != null && scene.SceneProps.Any())
                         {
-                            <span class="badge @sp.Category.ToBadgeClass() small rounded-pill px-2 py-1">
-                                <i class="bi @sp.Category.ToIconClass() me-1"></i>@sp.Name@(sp.Quantity > 1 ? $" ×{sp.Quantity}" : "")
+                            string propsTooltip = string.Join(", ", scene.SceneProps.Select(sp => sp.Quantity > 1 ? $"{sp.Name} ×{sp.Quantity}" : sp.Name));
+                            <span class="badge bg-light text-dark border small rounded-pill px-2 py-1" title="Реквизит и транспорт: @propsTooltip">
+                                <i class="bi bi-box-seam text-warning me-1"></i>@scene.SceneProps.Count
                             </span>
                         }
                     </div>

@@ -8,6 +8,10 @@
 @inject ProjectShareService ShareService
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<NavigationLock ConfirmExternalNavigation="@(canEdit && !isSaving && HasMetadataOrListChanges())"
+                OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
 
 <div class="d-flex flex-column h-100">
     <div class="section-header mb-4">
@@ -264,6 +268,9 @@
     private bool isSaving = false;
     private bool canEdit = true;
 
+    private string initialSnapshot = string.Empty;
+    private string initialActionHtml = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
@@ -314,7 +321,62 @@
                 };
         }
 
+        initialActionHtml = NormalizeHtml(scene.ActionDescription);
+        initialSnapshot = BuildMetadataSnapshot();
         isLoading = false;
+    }
+
+    private string BuildMetadataSnapshot()
+    {
+        var chars = string.Join(",", selectedCharacterIds.OrderBy(id => id));
+        var props = string.Join(";", sceneProps.Select(p => $"{p.Name.Trim()}|{(int)p.Category}|{p.Quantity}"));
+        return $"{scene.Title}|{scene.LocationType}|{scene.LocationName}|{scene.TimeOfDay}|{scene.Act}|{scene.Status}|{scene.DramaticStructure}|{chars}|{props}";
+    }
+
+    private static string NormalizeHtml(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html) || html == "<p><br></p>")
+            return string.Empty;
+        return html.Trim();
+    }
+
+    private bool HasMetadataOrListChanges()
+    {
+        if (isLoading || !canEdit) return false;
+        return BuildMetadataSnapshot() != initialSnapshot;
+    }
+
+    private async Task<bool> HasUnsavedChangesAsync()
+    {
+        if (isLoading || !canEdit) return false;
+
+        if (HasMetadataOrListChanges())
+            return true;
+
+        if (actionEditor != null)
+        {
+            var currentHtml = NormalizeHtml(await actionEditor.GetContentAsync());
+            if (currentHtml != initialActionHtml)
+                return true;
+        }
+
+        return false;
+    }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        if (isSaving || !canEdit) return;
+
+        if (await HasUnsavedChangesAsync())
+        {
+            bool leave = await JS.InvokeAsync<bool>(
+                "confirm",
+                "Есть несохранённые изменения. Вы уверены, что хотите покинуть страницу без сохранения?");
+            if (!leave)
+            {
+                context.PreventNavigation();
+            }
+        }
     }
 
     private void OnCharacterCheckboxChanged(int characterId, object? isChecked)
@@ -388,8 +450,10 @@
             await SceneService.SaveSceneFullAsync(scene, selectedCharacterIds.ToList(), sceneProps);
         }
 
+        initialActionHtml = NormalizeHtml(scene.ActionDescription);
+        initialSnapshot = BuildMetadataSnapshot();
         isSaving = false;
-        GoBack();
+        Navigation.NavigateTo($"/projects/{ProjectId}/scenes");
     }
 
     private void GoBack()

@@ -6,6 +6,10 @@
 @inject MovieProjectService ProjectService
 @inject ProjectShareService ShareService
 @inject AuthService AuthService
+@inject IJSRuntime JS
+
+<NavigationLock ConfirmExternalNavigation="@HasLoglineChanges()"
+                OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
 
 @if (isLoading)
 {
@@ -119,7 +123,8 @@ else
                 </div>
             </div>
 
-            <SynopsisEditor @key="ProjectId"
+            <SynopsisEditor @ref="synopsisEditor"
+                            @key="ProjectId"
                             InitialContent="@currentSynopsis"
                             OnSave="HandleSaveSynopsis"
                             IsReadOnly="@(!canEdit)" />
@@ -138,12 +143,41 @@ else
     private bool canEdit = true;
 
     private string currentSynopsis = string.Empty;
+    private SynopsisEditor? synopsisEditor;
 
     private bool isEditingLogline;
     private bool isSavingLogline;
 
     private string editedLogline = string.Empty;
     private string loglineMessage = string.Empty;
+
+    private bool HasLoglineChanges()
+    {
+        if (!canEdit || !isEditingLogline || project == null) return false;
+        return editedLogline.Trim() != (project.Logline ?? string.Empty).Trim();
+    }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        if (!canEdit) return;
+
+        bool hasUnsaved = HasLoglineChanges();
+        if (!hasUnsaved && synopsisEditor != null)
+        {
+            hasUnsaved = await synopsisEditor.HasUnsavedChangesAsync();
+        }
+
+        if (hasUnsaved)
+        {
+            bool leave = await JS.InvokeAsync<bool>(
+                "confirm",
+                "Есть несохранённые изменения. Вы уверены, что хотите покинуть страницу без сохранения?");
+            if (!leave)
+            {
+                context.PreventNavigation();
+            }
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
