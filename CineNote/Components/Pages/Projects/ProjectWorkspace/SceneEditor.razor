@@ -144,8 +144,8 @@
                 </div>
             </div>
 
-            <div class="col-12 col-lg-4">
-                <div class="cine-card h-100">
+            <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+                <div class="cine-card">
                     <h5 class="fw-bold text-dark mb-3">Участники сцены</h5>
                     <p class="text-muted small mb-3">Выберите персонажей, которые присутствуют в этой сцене:</p>
 
@@ -157,7 +157,7 @@
                     }
                     else
                     {
-                        <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 450px;">
+                        <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 280px;">
                             @foreach (var character in allProjectCharacters)
                             {
                                 <div class="form-check select-check-card">
@@ -170,6 +170,73 @@
                                         @character.Name <span class="text-muted small fw-normal ms-1">(@character.Role.ToDisplayName())</span>
                                     </label>
                                 </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="cine-card flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-2">
+                        <i class="bi bi-box-seam me-2 text-warning"></i>Реквизит и транспорт
+                    </h5>
+                    <p class="text-muted small mb-3">Теги для вызывной сводки съемочной группы:</p>
+
+                    @if (canEdit)
+                    {
+                        <div class="d-flex flex-column gap-2 mb-3 p-3 bg-light rounded-3 border">
+                            <input type="text"
+                                   class="form-control form-control-sm"
+                                   placeholder="Например: Револьвер, Черный седан..."
+                                   @bind="newPropName"
+                                   @bind:event="oninput"
+                                   @onkeyup="HandlePropKeyUp" />
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm" @bind="newPropCategory">
+                                    @foreach (PropCategory cat in Enum.GetValues(typeof(PropCategory)))
+                                    {
+                                        <option value="@cat">@cat.ToDisplayName()</option>
+                                    }
+                                </select>
+                                <input type="number"
+                                       class="form-control form-control-sm"
+                                       style="width: 75px;"
+                                       min="1"
+                                       max="999"
+                                       title="Количество"
+                                       @bind="newPropQuantity" />
+                                <button type="button"
+                                        class="btn btn-warning btn-sm px-3 fw-semibold text-dark text-nowrap"
+                                        @onclick="AddProp"
+                                        disabled="@string.IsNullOrWhiteSpace(newPropName)">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+
+                    @if (!sceneProps.Any())
+                    {
+                        <div class="empty-state-box">
+                            Реквизит и транспорт для этой сцены пока не указаны.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var prop in sceneProps)
+                            {
+                                <span class="badge @prop.Category.ToBadgeClass() rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 fw-medium">
+                                    <i class="bi @prop.Category.ToIconClass()"></i>
+                                    <span>@prop.Name@(prop.Quantity > 1 ? $" ×{prop.Quantity}" : "")</span>
+                                    @if (canEdit)
+                                    {
+                                        <button type="button"
+                                                class="btn-close shadow-none"
+                                                style="font-size: 0.6rem;"
+                                                title="Удалить тег"
+                                                @onclick="() => RemoveProp(prop)"></button>
+                                    }
+                                </span>
                             }
                         </div>
                     }
@@ -188,6 +255,10 @@
     private Scene scene = new();
     private List<Character> allProjectCharacters = new();
     private HashSet<int> selectedCharacterIds = new();
+    private List<SceneProp> sceneProps = new();
+    private string newPropName = string.Empty;
+    private PropCategory newPropCategory = PropCategory.Props;
+    private int newPropQuantity = 1;
     private QuillEditor? actionEditor;
     private bool isLoading = true;
     private bool isSaving = false;
@@ -215,6 +286,15 @@
             {
                 scene = existingScene;
                 selectedCharacterIds = new HashSet<int>(scene.SceneCharacters.Select(sc => sc.CharacterId));
+                sceneProps = scene.SceneProps.Select(sp => new SceneProp
+                {
+                    Id = sp.Id,
+                    SceneId = sp.SceneId,
+                    Name = sp.Name,
+                    Category = sp.Category,
+                    Quantity = sp.Quantity,
+                    Notes = sp.Notes
+                }).ToList();
             }
         }
         else
@@ -251,6 +331,35 @@
         }
     }
 
+    private void AddProp()
+    {
+        if (!canEdit || string.IsNullOrWhiteSpace(newPropName)) return;
+
+        sceneProps.Add(new SceneProp
+        {
+            Name = newPropName.Trim(),
+            Category = newPropCategory,
+            Quantity = newPropQuantity < 1 ? 1 : newPropQuantity
+        });
+
+        newPropName = string.Empty;
+        newPropQuantity = 1;
+    }
+
+    private void RemoveProp(SceneProp prop)
+    {
+        if (!canEdit) return;
+        sceneProps.Remove(prop);
+    }
+
+    private void HandlePropKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            AddProp();
+        }
+    }
+
     private async Task SaveScene()
     {
         if (!canEdit) return;
@@ -269,10 +378,14 @@
             {
                 await SceneService.UpdateSceneCharactersAsync(created.Id, selectedCharacterIds.ToList());
             }
+            if (sceneProps.Any())
+            {
+                await SceneService.UpdateScenePropsAsync(created.Id, sceneProps);
+            }
         }
         else
         {
-            await SceneService.SaveSceneWithCharactersAsync(scene, selectedCharacterIds.ToList());
+            await SceneService.SaveSceneFullAsync(scene, selectedCharacterIds.ToList(), sceneProps);
         }
 
         isSaving = false;

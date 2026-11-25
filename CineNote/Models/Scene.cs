@@ -53,5 +53,7 @@ namespace CineNote.Models
         public string DisplayTitle => string.IsNullOrWhiteSpace(Title) ? $"Сцена {SceneNumber}" : Title;
 
         public ICollection<SceneCharacter> SceneCharacters { get; set; } = new List<SceneCharacter>();
+
+        public ICollection<SceneProp> SceneProps { get; set; } = new List<SceneProp>();
     }
 }

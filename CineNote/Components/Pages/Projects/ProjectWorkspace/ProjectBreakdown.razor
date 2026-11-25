@@ -1,0 +1,470 @@
+@page "/projects/{ProjectId:int}/breakdown"
+@layout ProjectLayout
+@using CineNote.Models
+@using CineNote.Services
+@inject SceneService SceneService
+@inject MovieProjectService ProjectService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="section-header">
+    <div class="d-flex align-items-center gap-3">
+        <img src="/images/icons/icon_script_wax.png" alt="" width="42" height="42" style="object-fit: contain;" />
+        <div>
+            <h3 class="fw-bold text-dark mb-0">Вызывная сводка (Breakdown Sheet)</h3>
+            <p class="text-muted small mb-0">Производственная ведомость объектов, персонажей, реквизита и транспорта</p>
+        </div>
+    </div>
+
+    <button class="btn btn-outline-dark rounded-3 px-3 py-2 fw-semibold d-print-none" @onclick="PrintBreakdown">
+        <i class="bi bi-printer me-2"></i>Печать ведомости
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else if (project == null)
+{
+    <div class="empty-state-card">
+        <p class="text-muted mb-0">Проект не найден или у вас нет прав доступа.</p>
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-film text-warning me-1"></i>Сцен в сводке</div>
+                <div class="fs-3 fw-bold text-dark">@FilteredScenes.Count()</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-geo-alt-fill text-warning me-1"></i>Съемочных локаций</div>
+                <div class="fs-3 fw-bold text-dark">@LocationSummaries.Count</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-people-fill text-warning me-1"></i>Актеров / героев</div>
+                <div class="fs-3 fw-bold text-dark">@UniqueCharactersCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-box-seam text-warning me-1"></i>Позиций реквизита</div>
+                <div class="fs-3 fw-bold text-dark">@TotalPropsCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-filter-bar d-print-none">
+        <div class="pill-tab-group btn-group-sm" role="group">
+            <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "scenes" ? "btn-dark text-white" : "text-muted")"
+                    @onclick='() => activeTab = "scenes"'>
+                <i class="bi bi-table me-1"></i>По сценам
+            </button>
+            <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "locations" ? "btn-dark text-white" : "text-muted")"
+                    @onclick='() => activeTab = "locations"'>
+                <i class="bi bi-geo-alt me-1"></i>Ведомость локаций
+            </button>
+            <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "props" ? "btn-dark text-white" : "text-muted")"
+                    @onclick='() => activeTab = "props"'>
+                <i class="bi bi-box-seam me-1"></i>Реквизит и транспорт
+            </button>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 ms-auto">
+            <select class="form-select filter-select" @bind="actFilter" aria-label="Фильтр по акту">
+                <option value="">Все акты</option>
+                @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
+                {
+                    <option value="@act">@act.ToDisplayName()</option>
+                }
+            </select>
+
+            <select class="form-select filter-select" @bind="timeFilter" aria-label="Фильтр по времени суток">
+                <option value="">Любое время суток</option>
+                @foreach (TimeOfDay tod in Enum.GetValues(typeof(TimeOfDay)))
+                {
+                    <option value="@tod">@tod.ToDisplayName()</option>
+                }
+            </select>
+
+            <select class="form-select filter-select" @bind="locationTypeFilter" aria-label="Фильтр по типу площадки">
+                <option value="">Все площадки</option>
+                @foreach (LocationType loc in Enum.GetValues(typeof(LocationType)))
+                {
+                    <option value="@loc">@loc.ToDisplayName()</option>
+                }
+            </select>
+
+            @if (HasActiveFilters)
+            {
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 px-3" @onclick="ResetFilters">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Сбросить
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (!FilteredScenes.Any())
+    {
+        <div class="empty-state-card">
+            <i class="bi bi-clipboard-x text-warning fs-1 d-block mb-2"></i>
+            <h5 class="fw-bold text-dark mb-1">Нет сцен для отображения</h5>
+            <p class="text-muted small mb-3">Добавьте сцены в проект или сбросьте выбранные фильтры.</p>
+            @if (HasActiveFilters)
+            {
+                <button type="button" class="btn btn-outline-dark btn-sm rounded-3 px-3" @onclick="ResetFilters">
+                    Сбросить фильтры
+                </button>
+            }
+        </div>
+    }
+    else if (activeTab == "scenes")
+    {
+        <div class="cine-card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-secondary">
+                        <tr>
+                            <th class="ps-4">Сцена</th>
+                            <th>Акт</th>
+                            <th>Объект и время (Slugline)</th>
+                            <th>Задействованные герои</th>
+                            <th>Реквизит и транспорт</th>
+                            <th class="pe-4">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var scene in FilteredScenes)
+                        {
+                            <tr class="cursor-pointer" @onclick="() => OpenScene(scene.Id)">
+                                <td class="ps-4 fw-bold text-dark text-nowrap">
+                                    №@scene.SceneNumber
+                                    @if (!string.IsNullOrWhiteSpace(scene.Title))
+                                    {
+                                        <div class="small fw-normal text-muted">@scene.Title</div>
+                                    }
+                                </td>
+                                <td class="small text-muted text-nowrap">@scene.Act.ToDisplayName()</td>
+                                <td class="small fw-semibold text-dark">@scene.Slugline</td>
+                                <td>
+                                    @if (scene.SceneCharacters.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var sc in scene.SceneCharacters)
+                                            {
+                                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1">@sc.Character?.Name</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (scene.SceneProps.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var sp in scene.SceneProps)
+                                            {
+                                                <span class="badge @sp.Category.ToBadgeClass() rounded-pill px-2 py-1">
+                                                    <i class="bi @sp.Category.ToIconClass() me-1"></i>@sp.Name@(sp.Quantity > 1 ? $" ×{sp.Quantity}" : "")
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-nowrap">
+                                    <span class="badge @scene.Status.ToBadgeClass() rounded-pill px-2 py-1">
+                                        @scene.Status.ToDisplayName()
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else if (activeTab == "locations")
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var loc in LocationSummaries)
+            {
+                <div class="cine-card">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                <i class="bi bi-geo-alt-fill me-1"></i>@loc.LocationName
+                            </span>
+                            <span class="text-muted small">@loc.Scenes.Count сц.</span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            @foreach (var sc in loc.Scenes)
+                            {
+                                <a href="/projects/@ProjectId/scenes/@sc.Id/edit" class="badge bg-dark text-white rounded-pill px-2 py-1 text-decoration-none">
+                                    Сцена @sc.SceneNumber
+                                </a>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="small fw-semibold text-dark mb-2">
+                                <i class="bi bi-people me-1 text-warning"></i>Вызов актеров на объект:
+                            </div>
+                            @if (loc.Characters.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var name in loc.Characters)
+                                    {
+                                        <span class="badge bg-light text-dark border rounded-pill px-2 py-1">@name</span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Персонажи не привязаны</span>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <div class="small fw-semibold text-dark mb-2">
+                                <i class="bi bi-box-seam me-1 text-warning"></i>Реквизит и транспорт на площадке:
+                            </div>
+                            @if (loc.Props.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var prop in loc.Props)
+                                    {
+                                        <span class="badge @prop.Category.ToBadgeClass() rounded-pill px-2 py-1">
+                                            <i class="bi @prop.Category.ToIconClass() me-1"></i>@prop.Name@(prop.MaxQuantity > 1 ? $" (макс. ×{prop.MaxQuantity})" : "")
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Реквизит не указан</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (activeTab == "props")
+    {
+        @if (!PropSummaries.Any())
+        {
+            <div class="empty-state-card">
+                <i class="bi bi-box-seam text-warning fs-1 d-block mb-2"></i>
+                <h5 class="fw-bold text-dark mb-1">Реквизит и транспорт еще не добавлены</h5>
+                <p class="text-muted small mb-0">Откройте любую сцену в редакторе и добавьте теги реквизита, транспорта или техники.</p>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-4">
+                @foreach (var catGroup in PropSummaries.GroupBy(p => p.Category).OrderBy(g => g.Key))
+                {
+                    <div class="cine-card p-0 overflow-hidden">
+                        <div class="px-4 py-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold text-dark m-0 fs-6">
+                                <i class="bi @catGroup.Key.ToIconClass() text-warning me-2"></i>@catGroup.Key.ToDisplayName()
+                            </h5>
+                            <span class="badge bg-dark rounded-pill">@catGroup.Count() поз.</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light small text-secondary">
+                                    <tr>
+                                        <th class="ps-4">Наименование</th>
+                                        <th>Макс. кол-во на смену</th>
+                                        <th>Сцены</th>
+                                        <th class="pe-4">Локации</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in catGroup)
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-semibold text-dark">@item.Name</td>
+                                            <td><span class="badge bg-light text-dark border">×@item.MaxQuantity</span></td>
+                                            <td class="small">
+                                                @string.Join(", ", item.SceneNumbers.Select(n => $"№{n}"))
+                                            </td>
+                                            <td class="pe-4 small text-muted">
+                                                @string.Join(", ", item.Locations)
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    private MovieProject? project;
+    private List<Scene> scenes = new();
+    private bool isLoading = true;
+    private string activeTab = "scenes";
+
+    private string actFilter = string.Empty;
+    private string timeFilter = string.Empty;
+    private string locationTypeFilter = string.Empty;
+
+    private bool HasActiveFilters =>
+        !string.IsNullOrEmpty(actFilter) ||
+        !string.IsNullOrEmpty(timeFilter) ||
+        !string.IsNullOrEmpty(locationTypeFilter);
+
+    private IEnumerable<Scene> FilteredScenes
+    {
+        get
+        {
+            IEnumerable<Scene> query = scenes;
+
+            if (!string.IsNullOrEmpty(actFilter) && Enum.TryParse<MovieAct>(actFilter, out var act))
+                query = query.Where(s => s.Act == act);
+
+            if (!string.IsNullOrEmpty(timeFilter) && Enum.TryParse<TimeOfDay>(timeFilter, out var tod))
+                query = query.Where(s => s.TimeOfDay == tod);
+
+            if (!string.IsNullOrEmpty(locationTypeFilter) && Enum.TryParse<LocationType>(locationTypeFilter, out var locType))
+                query = query.Where(s => s.LocationType == locType);
+
+            return query;
+        }
+    }
+
+    private int UniqueCharactersCount => FilteredScenes
+        .SelectMany(s => s.SceneCharacters)
+        .Select(sc => sc.CharacterId)
+        .Distinct()
+        .Count();
+
+    private int TotalPropsCount => FilteredScenes
+        .SelectMany(s => s.SceneProps)
+        .Select(sp => $"{sp.Category}:{sp.Name.Trim().ToLowerInvariant()}")
+        .Distinct()
+        .Count();
+
+    private List<LocationBreakdownItem> LocationSummaries => FilteredScenes
+        .GroupBy(s => string.IsNullOrWhiteSpace(s.LocationName)
+            ? "ЛОКАЦИЯ НЕ УКАЗАНА"
+            : s.LocationName.Trim().ToUpperInvariant())
+        .OrderBy(g => g.Key == "ЛОКАЦИЯ НЕ УКАЗАНА" ? 1 : 0)
+        .ThenBy(g => g.Key)
+        .Select(g => new LocationBreakdownItem
+        {
+            LocationName = g.Key,
+            Scenes = g.OrderBy(s => s.SceneNumber).ToList(),
+            Characters = g.SelectMany(s => s.SceneCharacters)
+                .Where(sc => sc.Character != null)
+                .Select(sc => sc.Character!.Name)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList(),
+            Props = g.SelectMany(s => s.SceneProps)
+                .GroupBy(sp => new { Name = sp.Name.Trim(), sp.Category })
+                .Select(pg => new PropSummaryItem
+                {
+                    Name = pg.Key.Name,
+                    Category = pg.Key.Category,
+                    MaxQuantity = pg.Max(x => x.Quantity)
+                })
+                .OrderBy(p => p.Category)
+                .ThenBy(p => p.Name)
+                .ToList()
+        })
+        .ToList();
+
+    private List<PropSummaryItem> PropSummaries => FilteredScenes
+        .SelectMany(s => s.SceneProps.Select(sp => new { Scene = s, Prop = sp }))
+        .GroupBy(x => new { Name = x.Prop.Name.Trim(), x.Prop.Category })
+        .Select(g => new PropSummaryItem
+        {
+            Name = g.Key.Name,
+            Category = g.Key.Category,
+            MaxQuantity = g.Max(x => x.Prop.Quantity),
+            SceneNumbers = g.Select(x => x.Scene.SceneNumber).Distinct().OrderBy(n => n).ToList(),
+            Locations = g.Select(x => string.IsNullOrWhiteSpace(x.Scene.LocationName) ? "Без локации" : x.Scene.LocationName.Trim().ToUpperInvariant())
+                .Distinct()
+                .OrderBy(l => l)
+                .ToList()
+        })
+        .OrderBy(p => p.Category)
+        .ThenBy(p => p.Name)
+        .ToList();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        var currentUserId = AuthService.CurrentUser?.Id ?? 0;
+        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, currentUserId);
+
+        if (project != null)
+        {
+            scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
+        }
+
+        isLoading = false;
+    }
+
+    private void ResetFilters()
+    {
+        actFilter = string.Empty;
+        timeFilter = string.Empty;
+        locationTypeFilter = string.Empty;
+    }
+
+    private void OpenScene(int sceneId)
+    {
+        Navigation.NavigateTo($"/projects/{ProjectId}/scenes/{sceneId}/edit");
+    }
+
+    private async Task PrintBreakdown()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+
+    private class LocationBreakdownItem
+    {
+        public string LocationName { get; set; } = string.Empty;
+        public List<Scene> Scenes { get; set; } = new();
+        public List<string> Characters { get; set; } = new();
+        public List<PropSummaryItem> Props { get; set; } = new();
+    }
+
+    private class PropSummaryItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public PropCategory Category { get; set; }
+        public int MaxQuantity { get; set; }
+        public List<int> SceneNumbers { get; set; } = new();
+        public List<string> Locations { get; set; } = new();
+    }
+}

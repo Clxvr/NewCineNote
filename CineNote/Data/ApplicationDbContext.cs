@@ -16,6 +16,7 @@ namespace CineNote.Data
         public DbSet<User> Users { get; set; }
         public DbSet<ProjectShare> ProjectShares { get; set; }
         public DbSet<SceneCharacter> SceneCharacters { get; set; }
+        public DbSet<SceneProp> SceneProps { get; set; }
         public DbSet<ContactFeedback> ContactFeedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,6 +28,7 @@ namespace CineNote.Data
             modelBuilder.Entity<Character>().ToTable("characters");
             modelBuilder.Entity<Scene>().ToTable("scenes");
             modelBuilder.Entity<SceneCharacter>().ToTable("scene_characters");
+            modelBuilder.Entity<SceneProp>().ToTable("scene_props");
             modelBuilder.Entity<ProjectShare>().ToTable("project_shares");
             modelBuilder.Entity<ContactFeedback>().ToTable("contact_feedbacks");
 
@@ -47,6 +49,12 @@ namespace CineNote.Data
                 .WithMany(c => c.SceneCharacters)
                 .HasForeignKey(sc => sc.CharacterId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SceneProp>()
+                .HasOne(sp => sp.Scene)
+                .WithMany(s => s.SceneProps)
+                .HasForeignKey(sp => sp.SceneId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

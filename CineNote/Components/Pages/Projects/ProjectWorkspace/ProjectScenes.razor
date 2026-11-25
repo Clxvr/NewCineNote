@@ -575,6 +575,19 @@ else
                         }
                     </div>
                 }
+
+                @if (scene.SceneProps != null && scene.SceneProps.Any())
+                {
+                    <div class="mt-2 pt-2 border-top d-flex flex-wrap gap-1 align-items-center">
+                        <span class="text-muted small me-1">Реквизит:</span>
+                        @foreach (var sp in scene.SceneProps)
+                        {
+                            <span class="badge @sp.Category.ToBadgeClass() small rounded-pill px-2 py-1">
+                                <i class="bi @sp.Category.ToIconClass() me-1"></i>@sp.Name@(sp.Quantity > 1 ? $" ×{sp.Quantity}" : "")
+                            </span>
+                        }
+                    </div>
+                }
             </div>
 
             @if (canEdit)

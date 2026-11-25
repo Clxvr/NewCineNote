@@ -34,7 +34,9 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
 
             return await context.Scenes
+                .AsNoTracking()
                 .Include(s => s.SceneCharacters).ThenInclude(sc => sc.Character)
+                .Include(s => s.SceneProps)
                 .Where(s => s.MovieProjectId == projectId)
                 .OrderBy(s => s.Act)
                 .ThenBy(s => s.SceneNumber)
@@ -159,7 +161,9 @@ namespace CineNote.Services
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Scenes
+                .AsNoTracking()
                 .Include(s => s.SceneCharacters).ThenInclude(sc => sc.Character)
+                .Include(s => s.SceneProps)
                 .FirstOrDefaultAsync(s => s.Id == sceneId);
         }
 
@@ -182,7 +186,34 @@ namespace CineNote.Services
             await context.SaveChangesAsync();
         }
 
+        public async Task UpdateScenePropsAsync(int sceneId, List<SceneProp> props)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var existingProps = context.SceneProps.Where(sp => sp.SceneId == sceneId);
+            context.SceneProps.RemoveRange(existingProps);
+
+            foreach (var prop in props.Where(p => !string.IsNullOrWhiteSpace(p.Name)))
+            {
+                context.SceneProps.Add(new SceneProp
+                {
+                    SceneId = sceneId,
+                    Name = prop.Name.Trim(),
+                    Category = prop.Category,
+                    Quantity = prop.Quantity < 1 ? 1 : prop.Quantity,
+                    Notes = prop.Notes?.Trim() ?? string.Empty
+                });
+            }
+
+            await context.SaveChangesAsync();
+        }
+
         public async Task SaveSceneWithCharactersAsync(Scene scene, List<int> selectedCharacterIds)
+        {
+            await SaveSceneFullAsync(scene, selectedCharacterIds, new List<SceneProp>());
+        }
+
+        public async Task SaveSceneFullAsync(Scene scene, List<int> selectedCharacterIds, List<SceneProp> props)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -194,15 +225,22 @@ namespace CineNote.Services
                     .MaxAsync() ?? 0;
 
                 scene.SceneNumber = maxOrderNumber + 1;
+                scene.SceneCharacters = new List<SceneCharacter>();
+                scene.SceneProps = new List<SceneProp>();
                 context.Scenes.Add(scene);
                 await context.SaveChangesAsync();
             }
             else
             {
+                scene.SceneCharacters = new List<SceneCharacter>();
+                scene.SceneProps = new List<SceneProp>();
                 context.Scenes.Update(scene);
 
                 var existingLinks = context.SceneCharacters.Where(sc => sc.SceneId == scene.Id);
                 context.SceneCharacters.RemoveRange(existingLinks);
+
+                var existingProps = context.SceneProps.Where(sp => sp.SceneId == scene.Id);
+                context.SceneProps.RemoveRange(existingProps);
             }
 
             foreach (var charId in selectedCharacterIds)
@@ -211,6 +249,18 @@ namespace CineNote.Services
                 {
                     SceneId = scene.Id,
                     CharacterId = charId
+                });
+            }
+
+            foreach (var prop in props.Where(p => !string.IsNullOrWhiteSpace(p.Name)))
+            {
+                context.SceneProps.Add(new SceneProp
+                {
+                    SceneId = scene.Id,
+                    Name = prop.Name.Trim(),
+                    Category = prop.Category,
+                    Quantity = prop.Quantity < 1 ? 1 : prop.Quantity,
+                    Notes = prop.Notes?.Trim() ?? string.Empty
                 });
             }
 
@@ -314,6 +364,7 @@ namespace CineNote.Services
 
             var original = await context.Scenes
                 .Include(s => s.SceneCharacters)
+                .Include(s => s.SceneProps)
                 .FirstOrDefaultAsync(s => s.Id == sceneId);
 
             if (original == null) return null;
@@ -358,6 +409,25 @@ namespace CineNote.Services
                         CharacterId = sc.CharacterId
                     });
                 }
+            }
+
+            if (original.SceneProps.Any())
+            {
+                foreach (var sp in original.SceneProps)
+                {
+                    context.SceneProps.Add(new SceneProp
+                    {
+                        SceneId = duplicate.Id,
+                        Name = sp.Name,
+                        Category = sp.Category,
+                        Quantity = sp.Quantity,
+                        Notes = sp.Notes
+                    });
+                }
+            }
+
+            if (original.SceneCharacters.Any() || original.SceneProps.Any())
+            {
                 await context.SaveChangesAsync();
             }
 
