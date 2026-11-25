@@ -311,8 +311,10 @@
     background-color: #F8FAFC;
     border: 1px solid #E2E8F0;
     color: #475569;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 500;
+    padding: 0.25rem 0.6rem !important;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 
@@ -328,8 +330,10 @@
     background-color: #FFF5F5;
     border: 1px solid #FED7D7;
     color: #DC2626;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 500;
+    padding: 0.25rem 0.6rem !important;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 

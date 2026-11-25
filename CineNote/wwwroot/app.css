@@ -328,6 +328,7 @@ button {
 }
 
 .search-input-wrapper .form-control {
+    height: 38px;
     padding-left: 2.35rem;
     padding-right: 2.25rem;
     border-radius: 0.75rem;
@@ -360,8 +361,11 @@ button {
 }
 
 .filter-select {
-    min-width: 190px;
+    height: 38px;
+    min-width: 180px;
     width: auto;
+    padding-right: 2.25rem;
+    white-space: nowrap;
     border-radius: 0.75rem;
     border: 1px solid var(--border-subtle);
     background-color: #f9fafb;

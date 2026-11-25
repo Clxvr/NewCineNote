@@ -83,13 +83,14 @@
     }
 
 .delete-badge {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+    opacity: 0.75;
+    transition: opacity 0.2s ease-in-out, background-color 0.2s ease;
     background-color: #FFF5F5;
     border: 1px solid #FEB2B2;
     color: #DC2626;
 }
 
+.delete-badge:hover,
 .project-card:hover .delete-badge {
     opacity: 1;
 }
