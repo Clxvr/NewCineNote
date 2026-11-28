@@ -17,6 +17,7 @@ namespace CineNote.Data
         public DbSet<ProjectShare> ProjectShares { get; set; }
         public DbSet<SceneCharacter> SceneCharacters { get; set; }
         public DbSet<SceneProp> SceneProps { get; set; }
+        public DbSet<CharacterArcStep> CharacterArcSteps { get; set; }
         public DbSet<ContactFeedback> ContactFeedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,6 +30,7 @@ namespace CineNote.Data
             modelBuilder.Entity<Scene>().ToTable("scenes");
             modelBuilder.Entity<SceneCharacter>().ToTable("scene_characters");
             modelBuilder.Entity<SceneProp>().ToTable("scene_props");
+            modelBuilder.Entity<CharacterArcStep>().ToTable("character_arc_steps");
             modelBuilder.Entity<ProjectShare>().ToTable("project_shares");
             modelBuilder.Entity<ContactFeedback>().ToTable("contact_feedbacks");
 
@@ -55,6 +57,18 @@ namespace CineNote.Data
                 .WithMany(s => s.SceneProps)
                 .HasForeignKey(sp => sp.SceneId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterArcStep>()
+                .HasOne(a => a.Character)
+                .WithMany(c => c.ArcSteps)
+                .HasForeignKey(a => a.CharacterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterArcStep>()
+                .HasOne(a => a.Scene)
+                .WithMany()
+                .HasForeignKey(a => a.SceneId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

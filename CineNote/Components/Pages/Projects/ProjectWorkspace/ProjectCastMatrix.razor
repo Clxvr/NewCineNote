@@ -1,0 +1,601 @@
+@page "/projects/{ProjectId:int}/cast-matrix"
+@layout ProjectLayout
+@using CineNote.Models
+@using CineNote.Services
+@inject CharacterService CharacterService
+@inject SceneService SceneService
+@inject MovieProjectService ProjectService
+@inject ProjectShareService ShareService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="section-header">
+    <div class="d-flex align-items-center gap-3">
+        <img src="/images/icons/icon_masks.png" alt="" width="42" height="42" style="object-fit: contain;" />
+        <div>
+            <h3 class="fw-bold text-dark mb-0">Матрица занятости и арки героев</h3>
+            <p class="text-muted small mb-0">Аналитика участия персонажей в сценах и хронологическая лента развития характеров</p>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+}
+else if (project == null)
+{
+    <div class="empty-state-card">
+        <p class="text-muted mb-0">Проект не найден или у вас нет прав доступа.</p>
+    </div>
+}
+else
+{
+    @if (!canEdit)
+    {
+        <div class="cine-alert-readonly">
+            <i class="bi bi-shield-lock-fill text-warning fs-3"></i>
+            <div>
+                <span class="fw-bold text-dark d-block">Режим совместного чтения</span>
+                <span class="text-muted small">Вам предоставлен доступ «Читатель». Вы можете изучать аналитику занятости и ленту арок персонажей, но добавление и удаление этапов отключены.</span>
+            </div>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-people-fill text-warning me-1"></i>Героев в проекте</div>
+                <div class="fs-3 fw-bold text-dark">@characters.Count</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-film text-warning me-1"></i>Сцен в сценарии</div>
+                <div class="fs-3 fw-bold text-dark">@scenes.Count</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-star-fill text-warning me-1"></i>Лидер участия</div>
+                <div class="fs-5 fw-bold text-dark text-truncate" title="@TopCharacterSummary">@TopCharacterSummary</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="cine-card p-3 h-100">
+                <div class="text-muted small mb-1"><i class="bi bi-bezier2 text-warning me-1"></i>Вех арок развития</div>
+                <div class="fs-3 fw-bold text-dark">@TotalArcStepsCount</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-filter-bar">
+        <div class="pill-tab-group btn-group-sm" role="group">
+            <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "matrix" ? "btn-dark text-white" : "text-muted")"
+                    @onclick='() => activeTab = "matrix"'>
+                <i class="bi bi-grid-3x3-gap me-1"></i>Матрица занятости
+            </button>
+            <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "arcs" ? "btn-dark text-white" : "text-muted")"
+                    @onclick='() => activeTab = "arcs"'>
+                <i class="bi bi-bezier2 me-1"></i>Трекер сценарных арок
+            </button>
+        </div>
+
+        @if (activeTab == "matrix")
+        {
+            <div class="d-flex flex-wrap gap-2 ms-auto">
+                <select class="form-select filter-select" @bind="actFilter" aria-label="Фильтр по акту">
+                    <option value="">Все акты</option>
+                    @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
+                    {
+                        <option value="@act">@act.ToDisplayName()</option>
+                    }
+                </select>
+
+                <select class="form-select filter-select" @bind="roleFilter" aria-label="Фильтр по роли">
+                    <option value="">Все роли</option>
+                    @foreach (CharacterRole role in Enum.GetValues(typeof(CharacterRole)))
+                    {
+                        <option value="@role">@role.ToDisplayName()</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+
+    @if (!characters.Any())
+    {
+        <div class="empty-state-card">
+            <i class="bi bi-people text-warning fs-1 d-block mb-2"></i>
+            <h5 class="fw-bold text-dark mb-1">Персонажи пока не добавлены</h5>
+            <p class="text-muted small mb-3">Добавьте героев на вкладке «Персонажи», чтобы рассчитать матрицу занятости и отслеживать их арки.</p>
+            <a href="/projects/@ProjectId/characters" class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm">
+                Перейти к персонажам
+            </a>
+        </div>
+    }
+    else if (activeTab == "matrix")
+    {
+        <div class="d-flex flex-column gap-4">
+            <div class="cine-card">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-bar-chart-fill text-warning me-2"></i>Актерская нагрузка (% участия в сценах)
+                </h5>
+
+                @if (!FilteredCharacters.Any())
+                {
+                    <div class="empty-state-box">Персонажи с выбранной ролью не найдены.</div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var stat in CharacterStats)
+                        {
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-bold text-dark">@stat.Character.Name</span>
+                                        <span class="badge @GetRoleBadgeClass(stat.Character.Role) rounded-pill px-2 py-1 small">@stat.Character.Role.ToDisplayName()</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 small text-muted">
+                                        <span class="d-none d-md-inline">
+                                            Акт I: <strong>@stat.Act1Count</strong> · Акт II: <strong>@stat.Act2Count</strong> · Акт III: <strong>@stat.Act3Count</strong>
+                                        </span>
+                                        <span class="badge bg-dark text-white rounded-pill px-2 py-1">
+                                            @stat.SceneCount из @FilteredScenes.Count() сц. (@stat.Percent%)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 10px; background-color: #E5E7EB;">
+                                    <div class="progress-bar @GetProgressBarClass(stat.Character.Role) rounded-pill"
+                                         role="progressbar"
+                                         style="width: @stat.Percent%;"
+                                         aria-valuenow="@stat.Percent"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="cine-card p-0 overflow-hidden">
+                <div class="px-4 py-3 bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="fw-bold text-dark m-0 fs-6">
+                        <i class="bi bi-grid-3x3-gap-fill text-warning me-2"></i>Матрица присутствия «Персонаж × Сцена»
+                    </h5>
+                    <span class="text-muted small">Нажмите на номер сцены для перехода в редактор</span>
+                </div>
+
+                @if (!FilteredScenes.Any())
+                {
+                    <div class="p-4">
+                        <div class="empty-state-box">В выбранной выборке пока нет сцен.</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle mb-0 text-center">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th class="text-start ps-4" style="min-width: 190px;">Персонаж</th>
+                                    @foreach (var sc in FilteredScenes)
+                                    {
+                                        <th class="cursor-pointer text-nowrap"
+                                            title="Сцена @sc.SceneNumber: @sc.DisplayTitle (@sc.Slugline)"
+                                            @onclick="() => OpenScene(sc.Id)">
+                                            <span class="badge bg-dark rounded-pill">№@sc.SceneNumber</span>
+                                        </th>
+                                    }
+                                    <th class="text-nowrap">Итого</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var stat in CharacterStats)
+                                {
+                                    <tr>
+                                        <td class="text-start ps-4 fw-semibold text-dark text-nowrap">
+                                            @stat.Character.Name
+                                        </td>
+                                        @foreach (var sc in FilteredScenes)
+                                        {
+                                            bool present = sc.SceneCharacters.Any(x => x.CharacterId == stat.Character.Id);
+                                            <td class="@(present ? "bg-warning-subtle" : "")"
+                                                title="@(present ? $"{stat.Character.Name} участвует в сцене №{sc.SceneNumber}" : "Не участвует")">
+                                                @if (present)
+                                                {
+                                                    <i class="bi bi-check-circle-fill text-warning fs-6"></i>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted opacity-25">·</span>
+                                                }
+                                            </td>
+                                        }
+                                        <td class="fw-bold text-dark text-nowrap">@stat.Percent%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (activeTab == "arcs")
+    {
+        <div class="row g-4">
+            <div class="col-12 col-lg-4">
+                <div class="cine-card">
+                    <h5 class="fw-bold text-dark mb-3">Выберите героя</h5>
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var ch in characters)
+                        {
+                            bool isSelected = selectedCharacter?.Id == ch.Id;
+                            <button type="button"
+                                    class="btn text-start d-flex justify-content-between align-items-center p-3 rounded-3 border @(isSelected ? "btn-dark text-white" : "btn-light text-dark")"
+                                    @onclick="() => SelectCharacter(ch.Id)">
+                                <div>
+                                    <div class="fw-bold">@ch.Name</div>
+                                    <div class="small @(isSelected ? "text-warning" : "text-muted")">@ch.Role.ToDisplayName()</div>
+                                </div>
+                                <span class="badge @(isSelected ? "bg-warning text-dark" : "bg-white text-dark border") rounded-pill">
+                                    @ch.ArcSteps.Count вех
+                                </span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-8">
+                @if (selectedCharacter != null)
+                {
+                    <div class="cine-card mb-4">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div>
+                                <h4 class="fw-bold text-dark mb-1">@selectedCharacter.Name</h4>
+                                <span class="badge @GetRoleBadgeClass(selectedCharacter.Role) rounded-pill px-3 py-1">@selectedCharacter.Role.ToDisplayName()</span>
+                            </div>
+                            <div class="text-muted small">
+                                Участие в <strong>@selectedCharacter.SceneCharacters.Count</strong> из <strong>@scenes.Count</strong> сцен
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(selectedCharacter.Description))
+                        {
+                            <p class="text-muted small mb-0">@selectedCharacter.Description</p>
+                        }
+                    </div>
+
+                    @if (canEdit)
+                    {
+                        <div class="cine-card mb-4">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="bi bi-plus-circle text-warning me-2"></i>Добавить веху развития характера
+                            </h5>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Акт</label>
+                                    <select class="form-select form-select-sm" @bind="newArcAct">
+                                        @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
+                                        {
+                                            <option value="@act">@act.ToDisplayName()</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">Привязка к сцене (необязательно)</label>
+                                    <select class="form-select form-select-sm" @bind="newArcSceneId">
+                                        <option value="">Без привязки к конкретной сцене</option>
+                                        @foreach (var sc in scenes)
+                                        {
+                                            <option value="@sc.Id">Сцена №@sc.SceneNumber: @sc.DisplayTitle</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Этап / состояние героя</label>
+                                    <input type="text"
+                                           class="form-control form-control-sm"
+                                           placeholder="Например: Отказ от зова, Внутренний перелом, Момент истины..."
+                                           @bind="newArcStageTitle" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold">Описание изменения (мотивация, конфликт)</label>
+                                    <textarea class="form-control form-control-sm"
+                                              rows="2"
+                                              placeholder="Как меняется характер или цель персонажа на этом этапе..."
+                                              @bind="newArcNote"></textarea>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end mt-2">
+                                    <button type="button"
+                                            class="btn btn-warning btn-sm px-4 fw-semibold text-dark"
+                                            @onclick="AddArcStep"
+                                            disabled="@(isSavingArc || string.IsNullOrWhiteSpace(newArcStageTitle))">
+                                        <i class="bi bi-plus-lg me-1"></i>Добавить на ленту
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="cine-card">
+                        <h5 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-clock-history text-warning me-2"></i>Хронологическая лента арки героя
+                        </h5>
+
+                        @if (!selectedCharacter.ArcSteps.Any() && !SelectedCharacterScenes.Any())
+                        {
+                            <div class="empty-state-box">
+                                Для этого персонажа пока нет ни вех арки, ни сцен с его участием.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-column gap-4">
+                                @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
+                                {
+                                    var actArcs = selectedCharacter.ArcSteps.Where(a => a.Act == act).ToList();
+                                    var actScenes = SelectedCharacterScenes.Where(s => s.Act == act).ToList();
+
+                                    @if (actArcs.Any() || actScenes.Any())
+                                    {
+                                        <div class="border-start border-3 border-warning ps-3">
+                                            <h6 class="fw-bold text-dark mb-2">@act.ToDisplayName()</h6>
+
+                                            @if (actScenes.Any())
+                                            {
+                                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                                    <span class="small text-muted me-1">Сцены:</span>
+                                                    @foreach (var sc in actScenes)
+                                                    {
+                                                        <a href="/projects/@ProjectId/scenes/@sc.Id/edit"
+                                                           class="badge bg-light text-dark border rounded-pill px-2 py-1 text-decoration-none"
+                                                           title="@sc.Slugline">
+                                                            №@sc.SceneNumber @sc.DisplayTitle
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+
+                                            @foreach (var step in actArcs)
+                                            {
+                                                <div class="p-3 bg-light rounded-3 border mb-2">
+                                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                                        <div>
+                                                            <div class="fw-bold text-dark">
+                                                                <i class="bi bi-bookmark-star-fill text-warning me-1"></i>@step.StageTitle
+                                                            </div>
+                                                            @if (step.Scene != null)
+                                                            {
+                                                                <div class="small text-primary mt-1">
+                                                                    <i class="bi bi-film me-1"></i>Сцена №@step.Scene.SceneNumber: @step.Scene.DisplayTitle
+                                                                </div>
+                                                            }
+                                                            @if (!string.IsNullOrWhiteSpace(step.EmotionalNote))
+                                                            {
+                                                                <p class="text-muted small mb-0 mt-1">@step.EmotionalNote</p>
+                                                            }
+                                                        </div>
+
+                                                        @if (canEdit)
+                                                        {
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-outline-danger border-0 py-0 px-2"
+                                                                    title="Удалить веху"
+                                                                    @onclick="() => DeleteArcStep(step.Id)">
+                                                                <i class="bi bi-trash3"></i>
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+
+    private MovieProject? project;
+    private List<Character> characters = new();
+    private List<Scene> scenes = new();
+    private bool isLoading = true;
+    private bool canEdit = true;
+    private string activeTab = "matrix";
+
+    private string actFilter = string.Empty;
+    private string roleFilter = string.Empty;
+
+    private int? selectedCharacterId;
+    private Character? selectedCharacter => characters.FirstOrDefault(c => c.Id == selectedCharacterId) ?? characters.FirstOrDefault();
+
+    private MovieAct newArcAct = MovieAct.Act1;
+    private string newArcSceneId = string.Empty;
+    private string newArcStageTitle = string.Empty;
+    private string newArcNote = string.Empty;
+    private bool isSavingArc = false;
+
+    private IEnumerable<Scene> FilteredScenes
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(actFilter) && Enum.TryParse<MovieAct>(actFilter, out var act))
+                return scenes.Where(s => s.Act == act);
+            return scenes;
+        }
+    }
+
+    private IEnumerable<Character> FilteredCharacters
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(roleFilter) && Enum.TryParse<CharacterRole>(roleFilter, out var role))
+                return characters.Where(c => c.Role == role);
+            return characters;
+        }
+    }
+
+    private List<CharacterStatItem> CharacterStats
+    {
+        get
+        {
+            var targetScenes = FilteredScenes.ToList();
+            int total = targetScenes.Count;
+
+            return FilteredCharacters.Select(c =>
+            {
+                var charScenes = targetScenes.Where(s => s.SceneCharacters.Any(sc => sc.CharacterId == c.Id)).ToList();
+                int count = charScenes.Count;
+                int percent = total > 0 ? (int)Math.Round((double)count / total * 100) : 0;
+
+                return new CharacterStatItem
+                {
+                    Character = c,
+                    SceneCount = count,
+                    Percent = percent,
+                    Act1Count = charScenes.Count(s => s.Act == MovieAct.Act1),
+                    Act2Count = charScenes.Count(s => s.Act == MovieAct.Act2),
+                    Act3Count = charScenes.Count(s => s.Act == MovieAct.Act3)
+                };
+            })
+            .OrderByDescending(x => x.SceneCount)
+            .ThenBy(x => x.Character.Role)
+            .ToList();
+        }
+    }
+
+    private string TopCharacterSummary
+    {
+        get
+        {
+            if (!characters.Any() || !scenes.Any()) return "Нет данных";
+            var top = characters
+                .Select(c => new
+                {
+                    c.Name,
+                    Count = scenes.Count(s => s.SceneCharacters.Any(sc => sc.CharacterId == c.Id))
+                })
+                .OrderByDescending(x => x.Count)
+                .FirstOrDefault();
+
+            if (top == null || top.Count == 0) return "Не привязаны";
+            int pct = (int)Math.Round((double)top.Count / scenes.Count * 100);
+            return $"{top.Name} ({pct}%)";
+        }
+    }
+
+    private int TotalArcStepsCount => characters.Sum(c => c.ArcSteps.Count);
+
+    private IEnumerable<Scene> SelectedCharacterScenes => selectedCharacter == null
+        ? Enumerable.Empty<Scene>()
+        : scenes.Where(s => s.SceneCharacters.Any(sc => sc.CharacterId == selectedCharacter.Id));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        var currentUserId = AuthService.CurrentUser?.Id ?? 0;
+        project = await ProjectService.GetProjectByIdAndUserAsync(ProjectId, currentUserId);
+
+        if (project != null)
+        {
+            canEdit = await ShareService.CanUserEditProjectAsync(ProjectId, currentUserId);
+            characters = await CharacterService.GetCharactersWithArcsAsync(ProjectId);
+            scenes = await SceneService.GetScenesByProjectIdAsync(ProjectId);
+
+            if (selectedCharacterId == null || !characters.Any(c => c.Id == selectedCharacterId))
+            {
+                selectedCharacterId = characters.FirstOrDefault()?.Id;
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private void SelectCharacter(int id)
+    {
+        selectedCharacterId = id;
+    }
+
+    private async Task AddArcStep()
+    {
+        if (!canEdit || selectedCharacter == null || string.IsNullOrWhiteSpace(newArcStageTitle))
+            return;
+
+        isSavingArc = true;
+        int? parsedSceneId = int.TryParse(newArcSceneId, out var sid) ? sid : null;
+
+        await CharacterService.AddArcStepAsync(new CharacterArcStep
+        {
+            CharacterId = selectedCharacter.Id,
+            Act = newArcAct,
+            SceneId = parsedSceneId,
+            StageTitle = newArcStageTitle.Trim(),
+            EmotionalNote = newArcNote?.Trim() ?? string.Empty
+        });
+
+        newArcStageTitle = string.Empty;
+        newArcNote = string.Empty;
+        newArcSceneId = string.Empty;
+        isSavingArc = false;
+
+        await LoadData();
+    }
+
+    private async Task DeleteArcStep(int stepId)
+    {
+        if (!canEdit) return;
+        await CharacterService.DeleteArcStepAsync(stepId);
+        await LoadData();
+    }
+
+    private void OpenScene(int sceneId)
+    {
+        Navigation.NavigateTo($"/projects/{ProjectId}/scenes/{sceneId}/edit");
+    }
+
+    private static string GetRoleBadgeClass(CharacterRole role) => role switch
+    {
+        CharacterRole.Protagonist => "bg-primary text-white",
+        CharacterRole.Antagonist => "bg-danger text-white",
+        CharacterRole.Mentor => "bg-warning text-dark",
+        _ => "bg-light text-dark border"
+    };
+
+    private static string GetProgressBarClass(CharacterRole role) => role switch
+    {
+        CharacterRole.Protagonist => "bg-primary",
+        CharacterRole.Antagonist => "bg-danger",
+        CharacterRole.Mentor => "bg-warning",
+        _ => "bg-secondary"
+    };
+
+    private class CharacterStatItem
+    {
+        public Character Character { get; set; } = default!;
+        public int SceneCount { get; set; }
+        public int Percent { get; set; }
+        public int Act1Count { get; set; }
+        public int Act2Count { get; set; }
+        public int Act3Count { get; set; }
+    }
+}

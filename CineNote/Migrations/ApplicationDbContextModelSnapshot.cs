@@ -57,6 +57,52 @@ namespace CineNote.Migrations
                     b.ToTable("characters", (string)null);
                 });
 
+            modelBuilder.Entity("CineNote.Models.CharacterArcStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Act")
+                        .HasColumnType("int")
+                        .HasColumnName("act");
+
+                    b.Property<int>("CharacterId")
+                        .HasColumnType("int")
+                        .HasColumnName("character_id");
+
+                    b.Property<string>("EmotionalNote")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("emotional_note");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int")
+                        .HasColumnName("order_index");
+
+                    b.Property<int?>("SceneId")
+                        .HasColumnType("int")
+                        .HasColumnName("scene_id");
+
+                    b.Property<string>("StageTitle")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("stage_title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.HasIndex("SceneId");
+
+                    b.ToTable("character_arc_steps", (string)null);
+                });
+
             modelBuilder.Entity("CineNote.Models.ContactFeedback", b =>
                 {
                     b.Property<int>("Id")
@@ -359,6 +405,24 @@ namespace CineNote.Migrations
                     b.Navigation("MovieProject");
                 });
 
+            modelBuilder.Entity("CineNote.Models.CharacterArcStep", b =>
+                {
+                    b.HasOne("CineNote.Models.Character", "Character")
+                        .WithMany("ArcSteps")
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CineNote.Models.Scene", "Scene")
+                        .WithMany()
+                        .HasForeignKey("SceneId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Character");
+
+                    b.Navigation("Scene");
+                });
+
             modelBuilder.Entity("CineNote.Models.MovieProject", b =>
                 {
                     b.HasOne("CineNote.Models.User", "User")
@@ -432,6 +496,8 @@ namespace CineNote.Migrations
 
             modelBuilder.Entity("CineNote.Models.Character", b =>
                 {
+                    b.Navigation("ArcSteps");
+
                     b.Navigation("SceneCharacters");
                 });
 

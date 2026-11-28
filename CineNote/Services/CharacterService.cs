@@ -29,8 +29,53 @@ namespace CineNote.Services
             using var context = await _contextFactory.CreateDbContextAsync();
 
             return await context.Characters
+                .AsNoTracking()
                 .Where(c => c.MovieProjectId == projectId)
                 .ToListAsync();
+        }
+
+        public async Task<List<Character>> GetCharactersWithArcsAsync(int projectId)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            return await context.Characters
+                .AsNoTracking()
+                .Include(c => c.ArcSteps.OrderBy(a => a.Act).ThenBy(a => a.OrderIndex).ThenBy(a => a.Id))
+                    .ThenInclude(a => a.Scene)
+                .Include(c => c.SceneCharacters)
+                    .ThenInclude(sc => sc.Scene)
+                .Where(c => c.MovieProjectId == projectId)
+                .OrderBy(c => c.Role)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
+        }
+
+        public async Task<CharacterArcStep> AddArcStepAsync(CharacterArcStep step)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            int maxOrder = await context.CharacterArcSteps
+                .Where(a => a.CharacterId == step.CharacterId)
+                .Select(a => (int?)a.OrderIndex)
+                .MaxAsync() ?? 0;
+
+            step.OrderIndex = maxOrder + 1;
+            context.CharacterArcSteps.Add(step);
+            await context.SaveChangesAsync();
+
+            return step;
+        }
+
+        public async Task<bool> DeleteArcStepAsync(int stepId)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var step = await context.CharacterArcSteps.FindAsync(stepId);
+            if (step == null)
+                return false;
+
+            context.CharacterArcSteps.Remove(step);
+            return await context.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> UpdateCharacterAsync(Character character)

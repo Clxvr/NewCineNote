@@ -29,5 +29,7 @@ namespace CineNote.Models
         public CharacterRole Role { get; set; } = CharacterRole.Supporting;
 
         public ICollection<SceneCharacter> SceneCharacters { get; set; } = new List<SceneCharacter>();
+
+        public ICollection<CharacterArcStep> ArcSteps { get; set; } = new List<CharacterArcStep>();
     }
 }

@@ -63,6 +63,15 @@ namespace CineNote.Services
             {
                 int projectId = scene.MovieProjectId;
 
+                var arcRefs = await context.CharacterArcSteps
+                    .Where(a => a.SceneId == id)
+                    .ToListAsync();
+
+                foreach (var arcRef in arcRefs)
+                {
+                    arcRef.SceneId = null;
+                }
+
                 if (scene.SceneCharacters.Any())
                 {
                     context.SceneCharacters.RemoveRange(scene.SceneCharacters);
