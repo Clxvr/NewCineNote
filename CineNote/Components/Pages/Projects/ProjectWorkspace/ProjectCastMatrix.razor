@@ -282,7 +282,7 @@ else
                             <div class="row g-2">
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold">Акт</label>
-                                    <select class="form-select form-select-sm" @bind="newArcAct">
+                                    <select class="form-select form-select-sm" @bind="newArcAct" @bind:after="OnArcActChanged">
                                         @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
                                         {
                                             <option value="@act">@act.ToDisplayName()</option>
@@ -293,7 +293,7 @@ else
                                     <label class="form-label small fw-semibold">Привязка к сцене (необязательно)</label>
                                     <select class="form-select form-select-sm" @bind="newArcSceneId">
                                         <option value="">Без привязки к конкретной сцене</option>
-                                        @foreach (var sc in scenes)
+                                        @foreach (var sc in scenes.Where(s => s.Act == newArcAct))
                                         {
                                             <option value="@sc.Id">Сцена №@sc.SceneNumber: @sc.DisplayTitle</option>
                                         }
@@ -534,6 +534,18 @@ else
     private void SelectCharacter(int id)
     {
         selectedCharacterId = id;
+    }
+
+    private void OnArcActChanged()
+    {
+        if (int.TryParse(newArcSceneId, out var sid))
+        {
+            var sc = scenes.FirstOrDefault(s => s.Id == sid);
+            if (sc == null || sc.Act != newArcAct)
+            {
+                newArcSceneId = string.Empty;
+            }
+        }
     }
 
     private async Task AddArcStep()
