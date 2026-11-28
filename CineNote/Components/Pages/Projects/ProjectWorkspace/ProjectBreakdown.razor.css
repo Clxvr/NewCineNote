@@ -1,0 +1,23 @@
+.breakdown-header-icon {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.breakdown-kpi-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.breakdown-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.breakdown-row {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.breakdown-row:hover {
+    background-color: #FFFDF5;
+}

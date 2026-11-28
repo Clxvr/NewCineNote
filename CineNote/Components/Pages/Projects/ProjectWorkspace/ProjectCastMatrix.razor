@@ -11,7 +11,7 @@
 
 <div class="section-header">
     <div class="d-flex align-items-center gap-3">
-        <img src="/images/icons/icon_masks.png" alt="" width="42" height="42" style="object-fit: contain;" />
+        <img src="/images/icons/icon_masks.png" alt="" class="cast-header-icon" />
         <div>
             <h3 class="fw-bold text-dark mb-0">Матрица занятости и арки героев</h3>
             <p class="text-muted small mb-0">Аналитика участия персонажей в сценах и хронологическая лента развития характеров</p>
@@ -62,13 +62,13 @@ else
         <div class="col-6 col-md-3">
             <div class="cine-card p-3 h-100">
                 <div class="text-muted small mb-1"><i class="bi bi-star-fill text-warning me-1"></i>Лидер участия</div>
-                <div class="fs-5 fw-bold text-dark text-truncate" title="@TopCharacterSummary">@TopCharacterSummary</div>
+                <div class="fs-5 fw-bold text-dark text-truncate" title="@workload.TopCharacterSummary">@workload.TopCharacterSummary</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="cine-card p-3 h-100">
                 <div class="text-muted small mb-1"><i class="bi bi-bezier2 text-warning me-1"></i>Вех арок развития</div>
-                <div class="fs-3 fw-bold text-dark">@TotalArcStepsCount</div>
+                <div class="fs-3 fw-bold text-dark">@workload.TotalArcStepsCount</div>
             </div>
         </div>
     </div>
@@ -77,7 +77,7 @@ else
         <div class="pill-tab-group btn-group-sm" role="group">
             <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "matrix" ? "btn-dark text-white" : "text-muted")"
                     @onclick='() => activeTab = "matrix"'>
-                <i class="bi bi-grid-3x3-gap me-1"></i>Матрица занятости
+                <i class="bi bi-bar-chart-steps me-1"></i>Занятость героев
             </button>
             <button type="button" class="btn rounded-pill px-3 py-1 fw-semibold @(activeTab == "arcs" ? "btn-dark text-white" : "text-muted")"
                     @onclick='() => activeTab = "arcs"'>
@@ -88,7 +88,7 @@ else
         @if (activeTab == "matrix")
         {
             <div class="d-flex flex-wrap gap-2 ms-auto">
-                <select class="form-select filter-select" @bind="actFilter" aria-label="Фильтр по акту">
+                <select class="form-select filter-select" @bind="actFilter" @bind:after="RebuildWorkload" aria-label="Фильтр по акту">
                     <option value="">Все акты</option>
                     @foreach (MovieAct act in Enum.GetValues(typeof(MovieAct)))
                     {
@@ -96,7 +96,7 @@ else
                     }
                 </select>
 
-                <select class="form-select filter-select" @bind="roleFilter" aria-label="Фильтр по роли">
+                <select class="form-select filter-select" @bind="roleFilter" @bind:after="RebuildWorkload" aria-label="Фильтр по роли">
                     <option value="">Все роли</option>
                     @foreach (CharacterRole role in Enum.GetValues(typeof(CharacterRole)))
                     {
@@ -112,7 +112,7 @@ else
         <div class="empty-state-card">
             <i class="bi bi-people text-warning fs-1 d-block mb-2"></i>
             <h5 class="fw-bold text-dark mb-1">Персонажи пока не добавлены</h5>
-            <p class="text-muted small mb-3">Добавьте героев на вкладке «Персонажи», чтобы рассчитать матрицу занятости и отслеживать их арки.</p>
+            <p class="text-muted small mb-3">Добавьте героев на вкладке «Персонажи», чтобы рассчитать нагрузку и отслеживать их арки.</p>
             <a href="/projects/@ProjectId/characters" class="btn btn-warning rounded-3 px-4 py-2 fw-semibold text-dark shadow-sm">
                 Перейти к персонажам
             </a>
@@ -120,65 +120,62 @@ else
     }
     else if (activeTab == "matrix")
     {
-        <div class="d-flex flex-column gap-4">
-            <div class="cine-card">
-                <h5 class="fw-bold text-dark mb-3">
-                    <i class="bi bi-bar-chart-fill text-warning me-2"></i>Актерская нагрузка (% участия в сценах)
-                </h5>
+        <div class="cine-card">
+            <h5 class="fw-bold text-dark mb-3">
+                <i class="bi bi-bar-chart-fill text-warning me-2"></i>Актерская нагрузка (% участия в сценах)
+            </h5>
 
-                @if (!FilteredCharacters.Any())
-                {
-                    <div class="empty-state-box">Персонажи с выбранной ролью не найдены.</div>
-                }
-                else
-                {
-                    <div class="d-flex flex-column gap-3">
-                        @foreach (var stat in CharacterStats)
-                        {
-                            <div class="p-3 bg-light rounded-3 border">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="fw-bold text-dark">@stat.Character.Name</span>
-                                        <span class="badge @GetRoleBadgeClass(stat.Character.Role) rounded-pill px-2 py-1 small">@stat.Character.Role.ToDisplayName()</span>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2 small text-muted">
-                                        <span class="d-none d-md-inline">
-                                            Акт I: <strong>@stat.Act1Count</strong> · Акт II: <strong>@stat.Act2Count</strong> · Акт III: <strong>@stat.Act3Count</strong>
-                                        </span>
-                                        <span class="badge bg-dark text-white rounded-pill px-2 py-1">
-                                            @stat.SceneCount из @FilteredScenes.Count() сц. (@stat.Percent%)
-                                        </span>
-                                    </div>
+            @if (!workload.Stats.Any())
+            {
+                <div class="empty-state-box">Персонажи с выбранной ролью не найдены.</div>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var stat in workload.Stats)
+                    {
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold text-dark">@stat.Character.Name</span>
+                                    <span class="badge @GetRoleBadgeClass(stat.Character.Role) rounded-pill px-2 py-1 small">@stat.Character.Role.ToDisplayName()</span>
                                 </div>
-
-                                <div class="progress rounded-pill mb-2" style="height: 8px; background-color: #E5E7EB;">
-                                    <div class="progress-bar @GetProgressBarClass(stat.Character.Role) rounded-pill"
-                                         role="progressbar"
-                                         style="width: @stat.Percent%;"
-                                         aria-valuenow="@stat.Percent"
-                                         aria-valuemin="0"
-                                         aria-valuemax="100"></div>
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <span class="d-none d-md-inline">
+                                        Акт I: <strong>@stat.Act1Count</strong> · Акт II: <strong>@stat.Act2Count</strong> · Акт III: <strong>@stat.Act3Count</strong>
+                                    </span>
+                                    <span class="badge bg-dark text-white rounded-pill px-2 py-1">
+                                        @stat.SceneCount из @workload.FilteredScenes.Count сц. (@stat.Percent%)
+                                    </span>
                                 </div>
-
-                                @if (FilteredScenes.Any())
-                                {
-                                    <div class="d-flex flex-wrap gap-1 align-items-center" title="Ритм появлений по сценам (нажмите для перехода)">
-                                        @foreach (var sc in FilteredScenes)
-                                        {
-                                            bool present = sc.SceneCharacters.Any(x => x.CharacterId == stat.Character.Id);
-                                            <button type="button"
-                                                    class="btn p-0 border-0 rounded-1"
-                                                    style="width: 14px; height: 10px; background-color: @(present ? "#F59E0B" : "#D1D5DB"); opacity: @(present ? "1" : "0.55");"
-                                                    title="Сцена №@sc.SceneNumber (@sc.DisplayTitle): @(present ? "участвует" : "отсутствует")"
-                                                    @onclick="() => OpenScene(sc.Id)"></button>
-                                        }
-                                    </div>
-                                }
                             </div>
-                        }
-                    </div>
-                }
-            </div>
+
+                            <div class="progress rounded-pill workload-progress mb-2">
+                                <div class="progress-bar @GetProgressBarClass(stat.Character.Role) rounded-pill"
+                                     role="progressbar"
+                                     style="width: @stat.Percent%;"
+                                     aria-valuenow="@stat.Percent"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"></div>
+                            </div>
+
+                            @if (workload.FilteredScenes.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-1 align-items-center" title="Ритм появлений по сценам (нажмите для перехода)">
+                                    @foreach (var sc in workload.FilteredScenes)
+                                    {
+                                        bool present = sc.SceneCharacters.Any(x => x.CharacterId == stat.Character.Id);
+                                        <button type="button"
+                                                class="presence-pip @(present ? "active" : "")"
+                                                title="Сцена №@sc.SceneNumber (@sc.DisplayTitle): @(present ? "участвует" : "отсутствует")"
+                                                @onclick="() => OpenScene(sc.Id)"></button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
         </div>
     }
     else if (activeTab == "arcs")
@@ -299,7 +296,7 @@ else
 
                                     @if (actArcs.Any() || actScenes.Any())
                                     {
-                                        <div class="border-start border-3 border-warning ps-3">
+                                        <div class="arc-timeline-group">
                                             <h6 class="fw-bold text-dark mb-2">@act.ToDisplayName()</h6>
 
                                             @if (actScenes.Any())
@@ -367,6 +364,7 @@ else
     private MovieProject? project;
     private List<Character> characters = new();
     private List<Scene> scenes = new();
+    private CharacterWorkloadSummary workload = new();
     private bool isLoading = true;
     private bool canEdit = true;
     private string activeTab = "matrix";
@@ -382,77 +380,6 @@ else
     private string newArcStageTitle = string.Empty;
     private string newArcNote = string.Empty;
     private bool isSavingArc = false;
-
-    private IEnumerable<Scene> FilteredScenes
-    {
-        get
-        {
-            if (!string.IsNullOrEmpty(actFilter) && Enum.TryParse<MovieAct>(actFilter, out var act))
-                return scenes.Where(s => s.Act == act);
-            return scenes;
-        }
-    }
-
-    private IEnumerable<Character> FilteredCharacters
-    {
-        get
-        {
-            if (!string.IsNullOrEmpty(roleFilter) && Enum.TryParse<CharacterRole>(roleFilter, out var role))
-                return characters.Where(c => c.Role == role);
-            return characters;
-        }
-    }
-
-    private List<CharacterStatItem> CharacterStats
-    {
-        get
-        {
-            var targetScenes = FilteredScenes.ToList();
-            int total = targetScenes.Count;
-
-            return FilteredCharacters.Select(c =>
-            {
-                var charScenes = targetScenes.Where(s => s.SceneCharacters.Any(sc => sc.CharacterId == c.Id)).ToList();
-                int count = charScenes.Count;
-                int percent = total > 0 ? (int)Math.Round((double)count / total * 100) : 0;
-
-                return new CharacterStatItem
-                {
-                    Character = c,
-                    SceneCount = count,
-                    Percent = percent,
-                    Act1Count = charScenes.Count(s => s.Act == MovieAct.Act1),
-                    Act2Count = charScenes.Count(s => s.Act == MovieAct.Act2),
-                    Act3Count = charScenes.Count(s => s.Act == MovieAct.Act3)
-                };
-            })
-            .OrderByDescending(x => x.SceneCount)
-            .ThenBy(x => x.Character.Role)
-            .ToList();
-        }
-    }
-
-    private string TopCharacterSummary
-    {
-        get
-        {
-            if (!characters.Any() || !scenes.Any()) return "Нет данных";
-            var top = characters
-                .Select(c => new
-                {
-                    c.Name,
-                    Count = scenes.Count(s => s.SceneCharacters.Any(sc => sc.CharacterId == c.Id))
-                })
-                .OrderByDescending(x => x.Count)
-                .FirstOrDefault();
-
-            if (top == null || top.Count == 0) return "Не привязаны";
-            int pct = (int)Math.Round((double)top.Count / scenes.Count * 100);
-            return $"{top.Name} ({pct}%)";
-        }
-    }
-
-    private int TotalArcStepsCount => characters.Sum(c => c.ArcSteps.Count);
 
     private IEnumerable<Scene> SelectedCharacterScenes => selectedCharacter == null
         ? Enumerable.Empty<Scene>()
@@ -479,9 +406,19 @@ else
             {
                 selectedCharacterId = characters.FirstOrDefault()?.Id;
             }
+
+            RebuildWorkload();
         }
 
         isLoading = false;
+    }
+
+    private void RebuildWorkload()
+    {
+        MovieAct? act = Enum.TryParse<MovieAct>(actFilter, out var a) ? a : null;
+        CharacterRole? role = Enum.TryParse<CharacterRole>(roleFilter, out var r) ? r : null;
+
+        workload = CharacterService.BuildWorkloadSummary(characters, scenes, act, role);
     }
 
     private void SelectCharacter(int id)
@@ -553,14 +490,4 @@ else
         CharacterRole.Mentor => "bg-warning",
         _ => "bg-secondary"
     };
-
-    private class CharacterStatItem
-    {
-        public Character Character { get; set; } = default!;
-        public int SceneCount { get; set; }
-        public int Percent { get; set; }
-        public int Act1Count { get; set; }
-        public int Act2Count { get; set; }
-        public int Act3Count { get; set; }
-    }
 }

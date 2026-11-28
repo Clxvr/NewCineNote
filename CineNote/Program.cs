@@ -23,6 +23,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<ProjectShareService>();
+builder.Services.AddScoped<BreakdownService>();
 
 var app = builder.Build();
 

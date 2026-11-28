@@ -108,5 +108,93 @@ namespace CineNote.Services
 
             return await context.SaveChangesAsync() > 0;
         }
+
+        public CharacterWorkloadSummary BuildWorkloadSummary(
+            List<Character> characters,
+            List<Scene> allScenes,
+            MovieAct? actFilter = null,
+            CharacterRole? roleFilter = null)
+        {
+            var filteredScenes = actFilter.HasValue
+                ? allScenes.Where(s => s.Act == actFilter.Value).ToList()
+                : allScenes;
+
+            var filteredCharacters = roleFilter.HasValue
+                ? characters.Where(c => c.Role == roleFilter.Value).ToList()
+                : characters;
+
+            int totalScenes = filteredScenes.Count;
+
+            var stats = filteredCharacters.Select(c =>
+            {
+                var charScenes = filteredScenes
+                    .Where(s => s.SceneCharacters.Any(sc => sc.CharacterId == c.Id))
+                    .ToList();
+                int count = charScenes.Count;
+                int percent = totalScenes > 0 ? (int)Math.Round((double)count / totalScenes * 100) : 0;
+
+                return new CharacterStatItem
+                {
+                    Character = c,
+                    SceneCount = count,
+                    Percent = percent,
+                    Act1Count = charScenes.Count(s => s.Act == MovieAct.Act1),
+                    Act2Count = charScenes.Count(s => s.Act == MovieAct.Act2),
+                    Act3Count = charScenes.Count(s => s.Act == MovieAct.Act3)
+                };
+            })
+            .OrderByDescending(x => x.SceneCount)
+            .ThenBy(x => x.Character.Role)
+            .ToList();
+
+            string topSummary = "Нет данных";
+            if (characters.Any() && allScenes.Any())
+            {
+                var top = characters
+                    .Select(c => new
+                    {
+                        c.Name,
+                        Count = allScenes.Count(s => s.SceneCharacters.Any(sc => sc.CharacterId == c.Id))
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .FirstOrDefault();
+
+                if (top == null || top.Count == 0)
+                {
+                    topSummary = "Не привязаны";
+                }
+                else
+                {
+                    int pct = (int)Math.Round((double)top.Count / allScenes.Count * 100);
+                    topSummary = $"{top.Name} ({pct}%)";
+                }
+            }
+
+            return new CharacterWorkloadSummary
+            {
+                FilteredScenes = filteredScenes,
+                Stats = stats,
+                TopCharacterSummary = topSummary,
+                TotalArcStepsCount = characters.Sum(c => c.ArcSteps.Count)
+            };
+        }
+    }
+
+    public class CharacterWorkloadSummary
+    {
+        public List<Scene> FilteredScenes { get; set; } = new();
+        public List<CharacterStatItem> Stats { get; set; } = new();
+        public string TopCharacterSummary { get; set; } = "Нет данных";
+        public int TotalArcStepsCount { get; set; }
+    }
+
+    public class CharacterStatItem
+    {
+        public Character Character { get; set; } = default!;
+        public int SceneCount { get; set; }
+        public int Percent { get; set; }
+        public int Act1Count { get; set; }
+        public int Act2Count { get; set; }
+        public int Act3Count { get; set; }
     }
 }

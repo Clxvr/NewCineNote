@@ -1,0 +1,36 @@
+.cast-header-icon {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.workload-progress {
+    height: 8px;
+    background-color: #E5E7EB;
+}
+
+.presence-pip {
+    width: 14px;
+    height: 10px;
+    padding: 0;
+    border: none;
+    border-radius: 3px;
+    background-color: #D1D5DB;
+    opacity: 0.55;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.presence-pip.active {
+    background-color: #F59E0B;
+    opacity: 1;
+}
+
+.presence-pip:hover {
+    transform: scale(1.25);
+    opacity: 1;
+}
+
+.arc-timeline-group {
+    border-left: 3px solid #F59E0B;
+    padding-left: 1rem;
+}
